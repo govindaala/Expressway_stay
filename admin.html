@@ -38,25 +38,28 @@
 
       <!-- 1. नया होटल रजिस्ट्रेशन फॉर्म -->
       <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
-        <h2 class="font-extrabold text-sm text-slate-900 border-b pb-2">🏨 नया होटल रजिस्टर करें (Turso क्लाउड DB में सेव होगा)</h2>
+        <h2 class="font-extrabold text-sm text-slate-900 border-b pb-2">🏨 नया होटल रजिस्टर करें (GPS लोकेशन सपोर्ट)</h2>
 
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label class="text-[11px] font-bold text-slate-600">होटल का नाम *</label>
             <input type="text" x-model="form.name" placeholder="उदा. हाईवे किंग रिजॉर्ट" class="w-full border border-slate-300 rounded-xl p-2.5 text-xs mt-1">
           </div>
+
+          <!-- GPS ऑटो-डिटेक्ट लोकेशन फ़ील्ड -->
           <div>
-            <label class="text-[11px] font-bold text-slate-600">लोकेशन (कट / शहर) *</label>
-            <select x-model="form.city" class="w-full border border-slate-300 rounded-xl p-2.5 text-xs font-semibold mt-1 bg-white">
-              <option value="Dausa">दौसा (Dausa Exit)</option>
-              <option value="Sawai Madhopur">सवाई माधोपुर (Ranthambore Cut)</option>
-              <option value="Kota">कोटा (Kota Exit)</option>
-              <option value="Ratlam">रतलाम (MP Section)</option>
-              <option value="Vadodara">वडोदरा (Gujarat Exit)</option>
-            </select>
+            <div class="flex justify-between items-center">
+              <label class="text-[11px] font-bold text-slate-600">लोकेशन / शहर *</label>
+              <button type="button" @click="detectCurrentLocation()" :disabled="detectingLocation" class="text-[10px] bg-indigo-50 active:bg-indigo-100 text-indigo-700 border border-indigo-200 px-2 py-0.5 rounded font-bold flex items-center gap-1">
+                <span x-show="!detectingLocation">📍 ऑटो डिटेक्ट GPS</span>
+                <span x-show="detectingLocation">खोज रहा है... ⏳</span>
+              </button>
+            </div>
+            <input type="text" x-model="form.city" placeholder="GPS बटन दबाएँ या शहर लिखें" class="w-full border border-slate-300 rounded-xl p-2.5 text-xs mt-1 font-semibold">
           </div>
+
           <div>
-            <label class="text-[11px] font-bold text-slate-600">लॉगिन आईडी (मोबाइल या स्टोर कोड) *</label>
+            <label class="text-[11px] font-bold text-slate-600">लॉगिन आईडी (मोबाइल नंबर) *</label>
             <input type="text" x-model="form.loginId" placeholder="उदा. 9829012345" class="w-full border border-slate-300 rounded-xl p-2.5 text-xs mt-1 font-mono">
           </div>
           <div>
@@ -87,7 +90,7 @@
       <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
         <div class="flex justify-between items-center mb-3">
           <div class="flex items-center gap-2">
-            <h2 class="font-extrabold text-sm text-slate-900">📋 रजिस्टर्ड होटल्स (लॉगिन आईडी व QR लिस्ट)</h2>
+            <h2 class="font-extrabold text-sm text-slate-900">📋 रजिस्टर्ड होटल्स सूची</h2>
             <button @click="fetchHotels()" class="text-slate-400 hover:text-slate-700 text-xs">🔄</button>
           </div>
           <span class="text-[11px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-bold" x-text="'कुल: ' + hotels.length"></span>
@@ -97,10 +100,10 @@
           <table class="w-full text-left text-xs">
             <thead class="bg-slate-50 text-slate-600 border-b">
               <tr>
-                <th class="p-2.5">होटल / शहर</th>
+                <th class="p-2.5">होटल / GPS लोकेशन</th>
                 <th class="p-2.5">लॉगिन आईडी</th>
                 <th class="p-2.5">पिन</th>
-                <th class="p-2.5">कमरे (खाली/कुल)</th>
+                <th class="p-2.5">कमरे</th>
                 <th class="p-2.5">QR कोड</th>
                 <th class="p-2.5 text-right">कंट्रोल</th>
               </tr>
@@ -119,7 +122,7 @@
                   <td class="p-2.5 font-semibold" x-text="h.available_rooms + ' / ' + h.total_rooms"></td>
                   <td class="p-2.5">
                     <button @click="activeQrHotel = h" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 px-2.5 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1">
-                      <span>📷</span> QR देखें
+                      <span>📷</span> QR
                     </button>
                   </td>
                   <td class="p-2.5 text-right whitespace-nowrap space-x-1">
@@ -140,16 +143,12 @@
         <div class="border-b pb-2">
           <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full uppercase">Delhi–Mumbai Expressway</span>
           <h3 class="text-base font-black text-slate-900 mt-1" x-text="activeQrHotel?.name"></h3>
-          <p class="text-xs text-slate-500" x-text="'📍 ' + activeQrHotel?.city + ' कट'"></p>
+          <p class="text-xs text-slate-500" x-text="'📍 ' + activeQrHotel?.city"></p>
         </div>
 
         <div class="p-3 bg-slate-50 rounded-2xl inline-block border border-slate-200">
           <img :src="getQrUrl(activeQrHotel)" alt="Hotel QR" class="w-48 h-48 mx-auto rounded-xl shadow-sm">
         </div>
-
-        <p class="text-xs text-slate-600 font-medium">
-          यात्री इस QR कोड को स्कैन करके सीधे इस होटल की लाइव स्थिति देख सकते हैं।
-        </p>
 
         <div class="grid grid-cols-2 gap-2 pt-2">
           <a :href="getQrUrl(activeQrHotel)" download="hotel-qr.png" target="_blank" class="bg-indigo-600 text-white text-xs font-bold py-2.5 rounded-xl block">
@@ -165,16 +164,17 @@
 
   <script>
     const TURSO_PIPELINE_URL = "https://expresswaystay-govindaala.aws-ap-south-1.turso.io/v2/pipeline";
-    const TURSO_AUTH_TOKEN = "YOUR_TURSO_TOKEN"; // <-- यहाँ अपना Turso Token डालें
+    const TURSO_AUTH_TOKEN = "YOUR_TURSO_TOKEN"; // <-- यहाँ अपना Turso Token पेस्ट करें
 
     function adminDesk() {
       return {
         pass: '',
         auth: false,
         saving: false,
+        detectingLocation: false,
         hotels: [],
         activeQrHotel: null,
-        form: { name: '', city: 'Dausa', loginId: '', pin: '', phone: '', totalRooms: 10, price: 1500 },
+        form: { name: '', city: '', loginId: '', pin: '', phone: '', totalRooms: 10, price: 1500 },
 
         async init() {
           await this.fetchHotels();
@@ -183,6 +183,38 @@
         loginAdmin() {
           if (this.pass === 'admin99') this.auth = true;
           else alert('गलत मास्टर पासवर्ड!');
+        },
+
+        // GPS ऑटो डिटेक्ट फ़ंक्शन
+        detectCurrentLocation() {
+          if (!navigator.geolocation) {
+            alert('आपके ब्राउज़र में GPS सपोर्ट नहीं है!');
+            return;
+          }
+          this.detectingLocation = true;
+          navigator.geolocation.getCurrentPosition(
+            async (position) => {
+              const lat = position.coords.latitude;
+              const lon = position.coords.longitude;
+              try {
+                // मुफ़्त और सुरक्षित रिवर्स जियोकोडिंग से शहर का नाम पहचानना
+                const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
+                const data = await res.json();
+                const address = data.address;
+                const detectedCity = address.city || address.town || address.village || address.state_district || address.state || 'Expressway Location';
+                this.form.city = detectedCity;
+              } catch (e) {
+                this.form.city = `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+              } finally {
+                this.detectingLocation = false;
+              }
+            },
+            (error) => {
+              this.detectingLocation = false;
+              alert('GPS अनुमति नहीं मिली या सिग्नल कमज़ोर है। कृपया लोकेशन हाथ से दर्ज करें।');
+            },
+            { enableHighAccuracy: true, timeout: 10000 }
+          );
         },
 
         async executeTurso(sqlQuery) {
@@ -221,13 +253,14 @@
         },
 
         async saveHotel() {
-          if (!this.form.name || !this.form.loginId || !this.form.pin || !this.form.phone) {
-            alert('होटल नाम, लॉगिन आईडी, पिन और फोन नंबर जरूरी हैं!');
+          if (!this.form.name || !this.form.city || !this.form.loginId || !this.form.pin || !this.form.phone) {
+            alert('कृपया होटल नाम, लोकेशन, लॉगिन आईडी, पिन और फोन नंबर भरें!');
             return;
           }
           this.saving = true;
 
           const cleanName = this.form.name.trim().replace(/'/g, "''");
+          const cleanCity = this.form.city.trim().replace(/'/g, "''");
           const cleanId = this.form.loginId.trim().replace(/'/g, "''");
           const cleanPin = this.form.pin.trim().replace(/'/g, "''");
           const cleanPhone = this.form.phone.trim().replace(/'/g, "''");
@@ -235,12 +268,12 @@
           const price = Number(this.form.price) || 1500;
 
           const sql = `INSERT INTO hotels (login_id, pin, name, city, phone, total_rooms, available_rooms, starting_price, is_active)
-                       VALUES ('${cleanId}', '${cleanPin}', '${cleanName}', '${this.form.city}', '${cleanPhone}', ${rooms}, ${rooms}, ${price}, 1)`;
+                       VALUES ('${cleanId}', '${cleanPin}', '${cleanName}', '${cleanCity}', '${cleanPhone}', ${rooms}, ${rooms}, ${price}, 1)`;
 
           try {
             await this.executeTurso(sql);
             alert('होटल सफलतापूर्वक रजिस्टर हो गया!');
-            this.form.name = ''; this.form.loginId = ''; this.form.pin = ''; this.form.phone = '';
+            this.form.name = ''; this.form.city = ''; this.form.loginId = ''; this.form.pin = ''; this.form.phone = '';
             await this.fetchHotels();
           } catch (err) {
             alert('होटल जोड़ने में समस्या आई। आईडी पहले से मौजूद हो सकती है।');
