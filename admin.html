@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>सुपर एडमिन | Expressway Stay</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
+    [x-cloak] { display: none !important; }
+  </style>
+</head>
+<body class="bg-slate-100 min-h-screen p-3 sm:p-6 text-slate-900" x-data="adminDesk()" x-init="init()" x-cloak>
+
+  <div class="max-w-4xl mx-auto space-y-4">
+    <!-- एडमिन पासवर्ड गेट -->
+    <div x-show="!auth" class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 mt-8 max-w-md mx-auto">
+      <div class="text-center mb-5">
+        <div class="w-12 h-12 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center text-xl mx-auto mb-2 font-black">⚙️</div>
+        <h2 class="text-base font-extrabold text-slate-900">सुपर एडमिन कंट्रोल सेंटर</h2>
+        <p class="text-xs text-slate-500">मास्टर पासवर्ड दर्ज करें (Default: admin99)</p>
+      </div>
+      <input type="password" x-model="pass" placeholder="Password" class="w-full border border-slate-300 rounded-xl p-3 text-sm mb-3 outline-none focus:ring-2 focus:ring-rose-500">
+      <button @click="loginAdmin()" class="w-full bg-rose-600 active:bg-rose-700 text-white font-bold py-3 rounded-xl text-sm transition shadow">प्रवेश करें</button>
+    </div>
+
+    <!-- मुख्य एडमिन डैशबोर्ड -->
+    <div x-show="auth" class="space-y-5">
+      <header class="bg-slate-950 text-white p-4 rounded-2xl flex justify-between items-center shadow">
+        <div>
+          <span class="text-[10px] text-rose-400 font-bold uppercase tracking-wider">MASTER TURSO HUB</span>
+          <h1 class="text-base font-black">Expressway Stay एडमिन व QR हब</h1>
+        </div>
+        <button @click="auth = false" class="text-xs bg-slate-800 text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700 font-semibold">लॉगआउट</button>
+      </header>
+
+      <!-- 1. नया होटल रजिस्ट्रेशन फॉर्म -->
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+        <h2 class="font-extrabold text-sm text-slate-900 border-b pb-2">🏨 नया होटल रजिस्टर करें (Turso क्लाउड DB में सेव होगा)</h2>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label class="text-[11px] font-bold text-slate-600">होटल का नाम *</label>
+            <input type="text" x-model="form.name" placeholder="उदा. हाईवे किंग रिजॉर्ट" class="w-full border border-slate-300 rounded-xl p-2.5 text-xs mt-1">
+          </div>
+          <div>
+            <label class="text-[11px] font-bold text-slate-600">लोकेशन (कट / शहर) *</label>
+            <select x-model="form.city" class="w-full border border-slate-300 rounded-xl p-2.5 text-xs font-semibold mt-1 bg-white">
+              <option value="Dausa">दौसा (Dausa Exit)</option>
+              <option value="Sawai Madhopur">सवाई माधोपुर (Ranthambore Cut)</option>
+              <option value="Kota">कोटा (Kota Exit)</option>
+              <option value="Ratlam">रतलाम (MP Section)</option>
+              <option value="Vadodara">वडोदरा (Gujarat Exit)</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-[11px] font-bold text-slate-600">लॉगिन आईडी (मोबाइल या स्टोर कोड) *</label>
+            <input type="text" x-model="form.loginId" placeholder="उदा. 9829012345" class="w-full border border-slate-300 rounded-xl p-2.5 text-xs mt-1 font-mono">
+          </div>
+          <div>
+            <label class="text-[11px] font-bold text-slate-600">मास्टर लॉगिन पिन (PIN) *</label>
+            <input type="text" x-model="form.pin" placeholder="उदा. 1234" class="w-full border border-slate-300 rounded-xl p-2.5 text-xs mt-1 font-mono">
+          </div>
+          <div>
+            <label class="text-[11px] font-bold text-slate-600">कॉलिंग फ़ोन नंबर *</label>
+            <input type="text" x-model="form.phone" placeholder="उदा. 9829012345" class="w-full border border-slate-300 rounded-xl p-2.5 text-xs mt-1">
+          </div>
+          <div>
+            <label class="text-[11px] font-bold text-slate-600">कुल कमरे</label>
+            <input type="number" x-model="form.totalRooms" placeholder="10" class="w-full border border-slate-300 rounded-xl p-2.5 text-xs mt-1">
+          </div>
+          <div>
+            <label class="text-[11px] font-bold text-slate-600">शुरुआती किराया (₹)</label>
+            <input type="number" x-model="form.price" placeholder="1500" class="w-full border border-slate-300 rounded-xl p-2.5 text-xs mt-1">
+          </div>
+        </div>
+
+        <button @click="saveHotel()" :disabled="saving" class="w-full bg-emerald-600 active:bg-emerald-700 text-white text-xs font-bold py-3 rounded-xl mt-2 shadow flex items-center justify-center gap-2">
+          <span x-show="!saving">✓ होटल रजिस्टर करें और Turso में जोड़ें</span>
+          <span x-show="saving" class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+        </button>
+      </div>
+
+      <!-- 2. रजिस्टर्ड होटल और क्रेडेंशियल लिस्ट -->
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+        <div class="flex justify-between items-center mb-3">
+          <div class="flex items-center gap-2">
+            <h2 class="font-extrabold text-sm text-slate-900">📋 रजिस्टर्ड होटल्स (लॉगिन आईडी व QR लिस्ट)</h2>
+            <button @click="fetchHotels()" class="text-slate-400 hover:text-slate-700 text-xs">🔄</button>
+          </div>
+          <span class="text-[11px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-bold" x-text="'कुल: ' + hotels.length"></span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-50 text-slate-600 border-b">
+              <tr>
+                <th class="p-2.5">होटल / शहर</th>
+                <th class="p-2.5">लॉगिन आईडी</th>
+                <th class="p-2.5">पिन</th>
+                <th class="p-2.5">कमरे (खाली/कुल)</th>
+                <th class="p-2.5">QR कोड</th>
+                <th class="p-2.5 text-right">कंट्रोल</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y text-slate-700">
+              <template x-for="h in hotels" :key="h.login_id">
+                <tr class="hover:bg-slate-50">
+                  <td class="p-2.5 font-bold">
+                    <span x-text="h.name"></span>
+                    <span class="block text-[10px] text-slate-400 font-normal" x-text="'📍 ' + h.city + ' • 📞 ' + h.phone"></span>
+                  </td>
+                  <td class="p-2.5 font-mono font-bold text-indigo-700" x-text="h.login_id"></td>
+                  <td class="p-2.5 font-mono">
+                    <span class="bg-amber-100 text-amber-900 px-1.5 py-0.5 rounded font-bold" x-text="h.pin"></span>
+                  </td>
+                  <td class="p-2.5 font-semibold" x-text="h.available_rooms + ' / ' + h.total_rooms"></td>
+                  <td class="p-2.5">
+                    <button @click="activeQrHotel = h" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 px-2.5 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1">
+                      <span>📷</span> QR देखें
+                    </button>
+                  </td>
+                  <td class="p-2.5 text-right whitespace-nowrap space-x-1">
+                    <button @click="toggleStatus(h)" :class="Number(h.is_active) === 1 ? 'bg-slate-100 text-slate-700' : 'bg-emerald-100 text-emerald-800'" class="px-2 py-1 rounded text-[10px] font-bold" x-text="Number(h.is_active) === 1 ? 'ब्लॉक' : 'चालू'"></button>
+                    <button @click="deleteHotel(h.login_id)" class="bg-rose-50 text-rose-700 border border-rose-200 px-2 py-1 rounded text-[10px] font-bold">🗑️</button>
+                  </td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- QR कोड पॉपअप कार्ड -->
+    <div x-show="activeQrHotel" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+      <div class="bg-white rounded-3xl p-6 max-w-sm w-full text-center shadow-2xl space-y-4">
+        <div class="border-b pb-2">
+          <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full uppercase">Delhi–Mumbai Expressway</span>
+          <h3 class="text-base font-black text-slate-900 mt-1" x-text="activeQrHotel?.name"></h3>
+          <p class="text-xs text-slate-500" x-text="'📍 ' + activeQrHotel?.city + ' कट'"></p>
+        </div>
+
+        <div class="p-3 bg-slate-50 rounded-2xl inline-block border border-slate-200">
+          <img :src="getQrUrl(activeQrHotel)" alt="Hotel QR" class="w-48 h-48 mx-auto rounded-xl shadow-sm">
+        </div>
+
+        <p class="text-xs text-slate-600 font-medium">
+          यात्री इस QR कोड को स्कैन करके सीधे इस होटल की लाइव स्थिति देख सकते हैं।
+        </p>
+
+        <div class="grid grid-cols-2 gap-2 pt-2">
+          <a :href="getQrUrl(activeQrHotel)" download="hotel-qr.png" target="_blank" class="bg-indigo-600 text-white text-xs font-bold py-2.5 rounded-xl block">
+            📥 QR डाउनलोड
+          </a>
+          <button @click="activeQrHotel = null" class="bg-slate-100 text-slate-700 text-xs font-bold py-2.5 rounded-xl">
+            बंद करें
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const TURSO_PIPELINE_URL = "https://expresswaystay-govindaala.aws-ap-south-1.turso.io/v2/pipeline";
+    const TURSO_AUTH_TOKEN = "YOUR_TURSO_TOKEN"; // <-- यहाँ अपना Turso Token डालें
+
+    function adminDesk() {
+      return {
+        pass: '',
+        auth: false,
+        saving: false,
+        hotels: [],
+        activeQrHotel: null,
+        form: { name: '', city: 'Dausa', loginId: '', pin: '', phone: '', totalRooms: 10, price: 1500 },
+
+        async init() {
+          await this.fetchHotels();
+        },
+
+        loginAdmin() {
+          if (this.pass === 'admin99') this.auth = true;
+          else alert('गलत मास्टर पासवर्ड!');
+        },
+
+        async executeTurso(sqlQuery) {
+          const res = await fetch(TURSO_PIPELINE_URL, {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${TURSO_AUTH_TOKEN}`,
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              requests: [
+                { type: "execute", stmt: { sql: sqlQuery } },
+                { type: "close" }
+              ]
+            })
+          });
+          const data = await res.json();
+          if (data.results && data.results[0]?.response?.result) {
+            const execRes = data.results[0].response.result;
+            const colNames = execRes.cols.map(c => c.name);
+            return execRes.rows.map(row => {
+              const obj = {};
+              row.forEach((cell, idx) => { obj[colNames[idx]] = cell.value; });
+              return obj;
+            });
+          }
+          return [];
+        },
+
+        async fetchHotels() {
+          try {
+            this.hotels = await this.executeTurso("SELECT * FROM hotels ORDER BY id DESC");
+          } catch (e) {
+            console.error("Fetch hotels failed", e);
+          }
+        },
+
+        async saveHotel() {
+          if (!this.form.name || !this.form.loginId || !this.form.pin || !this.form.phone) {
+            alert('होटल नाम, लॉगिन आईडी, पिन और फोन नंबर जरूरी हैं!');
+            return;
+          }
+          this.saving = true;
+
+          const cleanName = this.form.name.trim().replace(/'/g, "''");
+          const cleanId = this.form.loginId.trim().replace(/'/g, "''");
+          const cleanPin = this.form.pin.trim().replace(/'/g, "''");
+          const cleanPhone = this.form.phone.trim().replace(/'/g, "''");
+          const rooms = Number(this.form.totalRooms) || 10;
+          const price = Number(this.form.price) || 1500;
+
+          const sql = `INSERT INTO hotels (login_id, pin, name, city, phone, total_rooms, available_rooms, starting_price, is_active)
+                       VALUES ('${cleanId}', '${cleanPin}', '${cleanName}', '${this.form.city}', '${cleanPhone}', ${rooms}, ${rooms}, ${price}, 1)`;
+
+          try {
+            await this.executeTurso(sql);
+            alert('होटल सफलतापूर्वक रजिस्टर हो गया!');
+            this.form.name = ''; this.form.loginId = ''; this.form.pin = ''; this.form.phone = '';
+            await this.fetchHotels();
+          } catch (err) {
+            alert('होटल जोड़ने में समस्या आई। आईडी पहले से मौजूद हो सकती है।');
+          } finally {
+            this.saving = false;
+          }
+        },
+
+        async toggleStatus(h) {
+          const next = Number(h.is_active) === 1 ? 0 : 1;
+          await this.executeTurso(`UPDATE hotels SET is_active = ${next} WHERE login_id = '${h.login_id}'`);
+          await this.fetchHotels();
+        },
+
+        async deleteHotel(id) {
+          if (!confirm('क्या आप इस होटल को हटाना चाहते हैं?')) return;
+          await this.executeTurso(`DELETE FROM hotels WHERE login_id = '${id}'`);
+          await this.fetchHotels();
+        },
+
+        getQrUrl(h) {
+          if (!h) return '';
+          const targetUrl = encodeURIComponent(`https://govindaala.github.io/Expressway_stay/Index.html?hotel=${h.login_id}`);
+          return `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${targetUrl}&color=0f172a`;
+        }
+      };
+    }
+  </script>
+</body>
+</html>
