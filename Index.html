@@ -12,50 +12,35 @@
     [x-cloak] { display: none !important; }
   </style>
 </head>
-<body class="bg-slate-100 text-slate-900 pb-20" x-data="expresswayApp()" x-init="init()" x-cloak>
+<body class="bg-slate-100 text-slate-900 pb-20" x-data="travellerPortal()" x-init="fetchLiveHotels()" x-cloak>
 
-  <!-- शीर्ष रोल स्विच बार -->
-  <header class="bg-slate-950 text-white px-4 py-2.5 flex items-center justify-between text-xs sticky top-0 z-50 border-b border-slate-800 shadow-md">
-    <div class="flex items-center gap-1.5 font-bold">
+  <!-- हेडर -->
+  <header class="bg-slate-950 text-white px-4 py-3 flex items-center justify-between text-xs sticky top-0 z-50 border-b border-slate-800 shadow-md">
+    <div class="flex items-center gap-2 font-bold tracking-wide">
       <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-      <span>EXPRESSWAY STAY</span>
+      <span>EXPRESSWAY STAY LIVE</span>
     </div>
-    <div class="flex bg-slate-800 p-1 rounded-lg gap-1 font-semibold">
-      <button @click="view = 'traveller'" :class="view === 'traveller' ? 'bg-amber-500 text-black' : 'text-slate-300'" class="px-2.5 py-1 rounded transition">यात्री</button>
-      <button @click="view = 'owner'" :class="view === 'owner' ? 'bg-indigo-600 text-white' : 'text-slate-300'" class="px-2.5 py-1 rounded transition">मालिक</button>
-      <button @click="view = 'admin'" :class="view === 'admin' ? 'bg-rose-600 text-white' : 'text-slate-300'" class="px-2.5 py-1 rounded transition">एडमिन</button>
-    </div>
+    <button @click="fetchLiveHotels()" class="text-[11px] bg-slate-800 active:bg-slate-700 text-slate-300 px-2.5 py-1 rounded-lg border border-slate-700 flex items-center gap-1">
+      🔄 रीफ़्रेश
+    </button>
   </header>
 
-  <!-- ============================================== -->
-  <!-- 1. TRAVELLER VIEW (सार्वजनिक यात्री - NO LOGIN) -->
-  <!-- ============================================== -->
-  <main x-show="view === 'traveller'" class="max-w-md mx-auto p-4">
-    <!-- मुख्य हाईवे बैनर -->
+  <main class="max-w-md mx-auto p-4">
+    <!-- मुख्य एक्सप्रेसवे बैनर -->
     <div class="bg-gradient-to-r from-amber-500 to-amber-600 rounded-2xl p-4 text-slate-950 shadow-md mb-4">
       <h1 class="text-lg font-black flex items-center gap-2">
         <span>🛣️</span> Delhi–Mumbai Expressway
       </h1>
       <p class="text-xs font-semibold text-amber-950 mt-1">
-        नजदीकी होटल, तुरंत खाली कमरे और हाईवे ढाबा सूची
+        नजदीकी होटल, ढाबा और लाइव खाली कमरों की स्थिति
       </p>
-
-      <!-- केटेगरी टॉगल -->
-      <div class="flex gap-2 mt-4">
-        <button @click="tab = 'hotels'" :class="tab === 'hotels' ? 'bg-slate-950 text-white shadow-sm' : 'bg-amber-400 text-slate-900'" class="flex-1 py-2 rounded-xl font-bold text-xs transition">
-          🏨 होटल्स (लाइव रूम्स)
-        </button>
-        <button @click="tab = 'restaurants'" :class="tab === 'restaurants' ? 'bg-slate-950 text-white shadow-sm' : 'bg-amber-400 text-slate-900'" class="flex-1 py-2 rounded-xl font-bold text-xs transition">
-          🍴 ढाबा व रेस्टोरेंट
-        </button>
-      </div>
     </div>
 
     <!-- लोकेशन फ़िल्टर -->
     <div class="mb-4">
       <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">एक्सप्रेसवे कट / शहर चुनें:</label>
       <select x-model="selectedCity" class="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs font-bold text-slate-800 shadow-sm outline-none">
-        <option value="ALL">सभी शहर (All Locations)</option>
+        <option value="ALL">सभी लोकेशन (All Locations)</option>
         <option value="Dausa">दौसा (Dausa Exit)</option>
         <option value="Sawai Madhopur">सवाई माधोपुर (Ranthambore Cut)</option>
         <option value="Kota">कोटा / मुकुंदरा (Kota Exit)</option>
@@ -64,8 +49,14 @@
       </select>
     </div>
 
-    <!-- HOTELS LIST -->
-    <div x-show="tab === 'hotels'" class="space-y-4">
+    <!-- लोडिंग इंडिकेटर -->
+    <div x-show="loading" class="text-center py-10">
+      <div class="inline-block w-8 h-8 border-4 border-slate-300 border-t-slate-900 rounded-full animate-spin"></div>
+      <p class="text-xs text-slate-500 mt-2 font-medium">Turso डेटाबेस से कनेक्ट हो रहा है...</p>
+    </div>
+
+    <!-- होटल सूची -->
+    <div x-show="!loading" class="space-y-4">
       <template x-for="hotel in filteredHotels" :key="hotel.id">
         <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
           <div class="flex justify-between items-start gap-2">
@@ -74,33 +65,33 @@
                 <h3 class="font-extrabold text-base text-slate-900" x-text="hotel.name"></h3>
                 <span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-1.5 py-0.5 rounded">✓ Verified</span>
               </div>
-              <p class="text-xs text-slate-500 mt-0.5" x-text="'📍 ' + hotel.city + ' (' + hotel.distance + ')'"></p>
+              <p class="text-xs text-slate-500 mt-0.5" x-text="'📍 ' + hotel.city + ' कट'"></p>
             </div>
             <div class="text-right whitespace-nowrap">
-              <span class="text-[10px] text-slate-400 block font-medium">कमरा शुरुआती</span>
-              <span class="text-base font-extrabold text-emerald-600" x-text="'₹' + hotel.startingPrice"></span>
+              <span class="text-[10px] text-slate-400 block font-medium">किराया शुरुआती</span>
+              <span class="text-base font-extrabold text-emerald-600" x-text="'₹' + (hotel.starting_price || 1500)"></span>
             </div>
           </div>
 
           <!-- लाइव रूम उपलब्धता कार्ड -->
           <div class="mt-3 p-3 rounded-xl border flex items-center justify-between"
-               :class="hotel.availableRooms > 0 ? 'bg-emerald-50 border-emerald-200' : 'bg-rose-50 border-rose-200'">
+               :class="Number(hotel.available_rooms) > 0 ? 'bg-emerald-50 border-emerald-200' : 'bg-rose-50 border-rose-200'">
             <div class="flex items-center gap-2">
-              <span class="w-2.5 h-2.5 rounded-full" :class="hotel.availableRooms > 0 ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'"></span>
+              <span class="w-2.5 h-2.5 rounded-full" :class="Number(hotel.available_rooms) > 0 ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'"></span>
               <span class="text-xs font-extrabold"
-                    :class="hotel.availableRooms > 0 ? 'text-emerald-900' : 'text-rose-900'"
-                    x-text="hotel.availableRooms > 0 ? '🟢 ' + hotel.availableRooms + ' कमरे अभी खाली हैं' : '🔴 अभी सभी कमरे भरे हैं'">
+                    :class="Number(hotel.available_rooms) > 0 ? 'text-emerald-900' : 'text-rose-900'"
+                    x-text="Number(hotel.available_rooms) > 0 ? '🟢 ' + hotel.available_rooms + ' कमरे अभी खाली हैं' : '🔴 सभी कमरे भरे हुए हैं'">
               </span>
             </div>
-            <span class="text-[10px] font-bold text-slate-400">लाइव अपडेट</span>
+            <span class="text-[10px] font-bold text-slate-400">Turso Live Sync</span>
           </div>
 
-          <!-- त्वरित कॉल और व्हाट्सएप बटन -->
+          <!-- क्विक एक्शन बटन -->
           <div class="grid grid-cols-3 gap-2 mt-4 pt-2 border-t border-slate-100">
             <a :href="'tel:' + hotel.phone" class="flex items-center justify-center gap-1 bg-slate-900 active:bg-black text-white text-xs font-bold py-2.5 rounded-xl">
               📞 Call
             </a>
-            <a :href="'https://wa.me/91' + hotel.phone + '?text=नमस्ते, मुझे एक्सप्रेसवे स्टे पर आपका होटल दिखा। क्या कमरा उपलब्ध है?'" target="_blank" class="flex items-center justify-center gap-1 bg-emerald-600 active:bg-emerald-700 text-white text-xs font-bold py-2.5 rounded-xl">
+            <a :href="'https://wa.me/91' + hotel.phone + '?text=' + encodeURIComponent('नमस्ते ' + hotel.name + ', एक्सप्रेसवे स्टे पर आपके खाली कमरे दिखे। क्या बुकिंग मिल सकती है?')" target="_blank" class="flex items-center justify-center gap-1 bg-emerald-600 active:bg-emerald-700 text-white text-xs font-bold py-2.5 rounded-xl">
               💬 WhatsApp
             </a>
             <a :href="'https://maps.google.com/?q=' + encodeURIComponent(hotel.name + ' ' + hotel.city)" target="_blank" class="flex items-center justify-center gap-1 bg-blue-600 active:bg-blue-700 text-white text-xs font-bold py-2.5 rounded-xl">
@@ -109,223 +100,64 @@
           </div>
         </div>
       </template>
-    </div>
 
-    <!-- RESTAURANTS LIST -->
-    <div x-show="tab === 'restaurants'" class="space-y-4">
-      <template x-for="rest in filteredRestaurants" :key="rest.id">
-        <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
-          <div class="flex justify-between items-start">
-            <div>
-              <h3 class="font-extrabold text-base text-slate-900" x-text="rest.name"></h3>
-              <p class="text-xs text-slate-500 mt-0.5" x-text="'📍 ' + rest.city + ' (' + rest.distance + ')'"></p>
-            </div>
-            <span class="bg-amber-100 text-amber-900 text-[10px] font-bold px-2 py-0.5 rounded-full" x-text="rest.type"></span>
-          </div>
-
-          <div class="grid grid-cols-2 gap-2 mt-4">
-            <a :href="'tel:' + rest.phone" class="flex items-center justify-center gap-1 bg-slate-900 text-white text-xs font-bold py-2.5 rounded-xl">
-              📞 Call Dhaba
-            </a>
-            <a :href="'https://maps.google.com/?q=' + encodeURIComponent(rest.name + ' ' + rest.city)" target="_blank" class="flex items-center justify-center gap-1 bg-blue-600 text-white text-xs font-bold py-2.5 rounded-xl">
-              📍 Get Route
-            </a>
-          </div>
-        </div>
-      </template>
+      <!-- कोई होटल न मिलने पर -->
+      <div x-show="filteredHotels.length === 0" class="text-center py-10 bg-white rounded-2xl border border-slate-200">
+        <p class="text-xs text-slate-500">इस लोकेशन पर अभी कोई होटल लिस्टेड नहीं है।</p>
+      </div>
     </div>
   </main>
 
-  <!-- ============================================== -->
-  <!-- 2. OWNER PORTAL (कमरे अपडेट करने का डैशबोर्ड) -->
-  <!-- ============================================== -->
-  <section x-show="view === 'owner'" class="max-w-md mx-auto p-4">
-    <!-- लॉगिन फॉर्म -->
-    <div x-show="!ownerLoggedIn" class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-      <div class="text-center mb-6">
-        <div class="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-xl mx-auto mb-2 font-black">🏨</div>
-        <h2 class="text-base font-extrabold">होटल मालिक लॉगिन</h2>
-        <p class="text-xs text-slate-500 mt-1">कमरों की खाली संख्या बदलने के लिए लॉगिन करें</p>
-      </div>
-
-      <div class="space-y-3">
-        <div>
-          <label class="text-xs font-bold text-slate-700 block mb-1">मोबाइल नंबर</label>
-          <input type="text" x-model="loginMobile" placeholder="9829012345" class="w-full border rounded-xl p-2.5 text-sm font-semibold outline-none focus:ring-2 focus:ring-indigo-500">
-        </div>
-        <div>
-          <label class="text-xs font-bold text-slate-700 block mb-1">पिन (PIN)</label>
-          <input type="password" x-model="loginPin" placeholder="1234" class="w-full border rounded-xl p-2.5 text-sm font-semibold outline-none focus:ring-2 focus:ring-indigo-500">
-        </div>
-        <button @click="ownerLogin()" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-xl shadow text-sm active:scale-95 transition mt-2">
-          डैशबोर्ड खोलें
-        </button>
-        <p class="text-[11px] text-slate-400 text-center">टेस्ट पिन: मोबाइल `9829012345` / पिन `1234`</p>
-      </div>
-    </div>
-
-    <!-- मालिक डैशबोर्ड -->
-    <div x-show="ownerLoggedIn" class="space-y-4">
-      <div class="bg-slate-900 text-white p-4 rounded-2xl flex justify-between items-center shadow-sm">
-        <div>
-          <p class="text-[10px] text-indigo-300 font-bold uppercase">सक्रिय होटल</p>
-          <h2 class="text-base font-extrabold" x-text="myHotel.name"></h2>
-        </div>
-        <button @click="ownerLoggedIn = false" class="text-xs bg-slate-800 text-slate-300 px-2.5 py-1.5 rounded-lg border border-slate-700 font-semibold">
-          लॉगआउट
-        </button>
-      </div>
-
-      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm text-center">
-        <h4 class="font-bold text-sm text-slate-700 mb-1">आज खाली कमरों की संख्या</h4>
-        <p class="text-xs text-slate-400 mb-4">बटन दबाते ही यात्री स्क्रीन पर तुरंत अपडेट दिखेगा</p>
-
-        <div class="flex items-center justify-center gap-5">
-          <button @click="updateRooms(-1)" class="w-12 h-12 rounded-2xl bg-slate-100 active:bg-slate-200 text-slate-800 font-black text-2xl flex items-center justify-center shadow-inner">−</button>
-          <span class="text-4xl font-black text-indigo-600 w-16 text-center" x-text="myHotel.availableRooms"></span>
-          <button @click="updateRooms(1)" class="w-12 h-12 rounded-2xl bg-indigo-50 active:bg-indigo-100 text-indigo-700 font-black text-2xl flex items-center justify-center shadow-inner">+</button>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============================================== -->
-  <!-- 3. ADMIN PORTAL (नया होटल व ढाबा जोड़ना) -->
-  <!-- ============================================== -->
-  <section x-show="view === 'admin'" class="max-w-md mx-auto p-4">
-    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
-      <h3 class="font-extrabold text-sm text-slate-900 border-b pb-2">+ नया होटल या ढाबा लिस्ट करें</h3>
-
-      <div>
-        <label class="text-[11px] font-bold text-slate-600">प्रकार (Category)</label>
-        <select x-model="newItem.type" class="w-full border rounded-xl p-2 text-xs font-semibold mt-1">
-          <option value="hotel">होटल (Stay)</option>
-          <option value="restaurant">ढाबा / रेस्टोरेंट (Food)</option>
-        </select>
-      </div>
-
-      <div>
-        <label class="text-[11px] font-bold text-slate-600">नाम</label>
-        <input type="text" x-model="newItem.name" placeholder="उदा. हाईवे किंग होटल" class="w-full border rounded-xl p-2 text-xs mt-1">
-      </div>
-
-      <div>
-        <label class="text-[11px] font-bold text-slate-600">लोकेशन (कट / शहर)</label>
-        <select x-model="newItem.city" class="w-full border rounded-xl p-2 text-xs font-semibold mt-1">
-          <option value="Dausa">दौसा</option>
-          <option value="Sawai Madhopur">सवाई माधोपुर</option>
-          <option value="Kota">कोटा</option>
-          <option value="Ratlam">रतलाम</option>
-          <option value="Vadodara">वडोदरा</option>
-        </select>
-      </div>
-
-      <div>
-        <label class="text-[11px] font-bold text-slate-600">मोबाइल नंबर (कॉल व व्हाट्सएप हेतु)</label>
-        <input type="text" x-model="newItem.phone" placeholder="9829012345" class="w-full border rounded-xl p-2 text-xs mt-1">
-      </div>
-
-      <div x-show="newItem.type === 'hotel'">
-        <label class="text-[11px] font-bold text-slate-600">शुरुआती किराया (₹)</label>
-        <input type="number" x-model="newItem.startingPrice" placeholder="1200" class="w-full border rounded-xl p-2 text-xs mt-1">
-      </div>
-
-      <button @click="addItem()" class="w-full bg-slate-900 text-white text-xs font-bold py-3 rounded-xl mt-2">
-        तुरंत लिस्ट करें
-      </button>
-    </div>
-  </section>
-
-  <!-- Application Logic -->
   <script>
-    function expresswayApp() {
+    // Turso कॉन्फ़िगरेशन
+    const TURSO_PIPELINE_URL = "https://expresswaystay-govindaala.aws-ap-south-1.turso.io/v2/pipeline";
+    const TURSO_AUTH_TOKEN = "YOUR_TURSO_TOKEN"; // <-- यहाँ अपना Create Token वाला कोड पेस्ट करें
+
+    function travellerPortal() {
       return {
-        view: 'traveller',
-        tab: 'hotels',
         selectedCity: 'ALL',
-        ownerLoggedIn: false,
-        loginMobile: '',
-        loginPin: '',
-        myHotel: {},
+        hotels: [],
+        loading: false,
 
-        newItem: { type: 'hotel', name: '', city: 'Dausa', phone: '', startingPrice: 1500 },
+        async fetchLiveHotels() {
+          this.loading = true;
+          try {
+            const res = await fetch(TURSO_PIPELINE_URL, {
+              method: "POST",
+              headers: {
+                "Authorization": `Bearer ${TURSO_AUTH_TOKEN}`,
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify({
+                requests: [
+                  { type: "execute", stmt: { sql: "SELECT * FROM hotels WHERE is_active = 1 ORDER BY id DESC" } },
+                  { type: "close" }
+                ]
+              })
+            });
 
-        hotels: [
-          { id: 1, name: "Highway King Resort & Rooms", city: "Dausa", distance: "Expressway Exit 2 km", startingPrice: 1800, availableRooms: 6, phone: "9829012345" },
-          { id: 2, name: "Tiger View Residency", city: "Sawai Madhopur", distance: "Cut se 3 km", startingPrice: 2200, availableRooms: 3, phone: "9829011111" },
-          { id: 3, name: "Chambal Expressway Motel", city: "Kota", distance: "Zero Point", startingPrice: 1400, availableRooms: 0, phone: "9829022222" }
-        ],
+            const data = await res.json();
+            const execRes = data.results[0].response.result;
+            const colNames = execRes.cols.map(c => c.name);
 
-        restaurants: [
-          { id: 101, name: "पंडित जी का मशहूर ढाबा (शुद्ध देसी घी)", city: "Dausa", distance: "Expressway Rest Area", type: "Pure Veg Dhaba", phone: "9829012345" },
-          { id: 102, name: "हल्दीघाटी फ़ैमिली रेस्टोरेंट", city: "Kota", distance: "Exit 1 km", type: "Family AC Restaurant", phone: "9829033333" }
-        ],
-
-        init() {
-          const savedHotels = localStorage.getItem('exp_hotels');
-          if (savedHotels) this.hotels = JSON.parse(savedHotels);
-          const savedRest = localStorage.getItem('exp_rests');
-          if (savedRest) this.restaurants = JSON.parse(savedRest);
+            // Turso के rows को ऑब्जेक्ट में बदलना
+            this.hotels = execRes.rows.map(row => {
+              const obj = {};
+              row.forEach((cell, idx) => {
+                obj[colNames[idx]] = cell.value;
+              });
+              return obj;
+            });
+          } catch (err) {
+            console.error("Turso Connection Error:", err);
+          } finally {
+            this.loading = false;
+          }
         },
 
         get filteredHotels() {
           if (this.selectedCity === 'ALL') return this.hotels;
           return this.hotels.filter(h => h.city === this.selectedCity);
-        },
-
-        get filteredRestaurants() {
-          if (this.selectedCity === 'ALL') return this.restaurants;
-          return this.restaurants.filter(r => r.city === this.selectedCity);
-        },
-
-        ownerLogin() {
-          const found = this.hotels.find(h => h.phone === this.loginMobile.trim());
-          if (found && this.loginPin === '1234') {
-            this.myHotel = found;
-            this.ownerLoggedIn = true;
-          } else {
-            alert('अमान्य मोबाइल नंबर या पिन! (डेमो के लिए मोबाइल: 9829012345 और पिन: 1234 दर्ज करें)');
-          }
-        },
-
-        updateRooms(delta) {
-          const next = this.myHotel.availableRooms + delta;
-          if (next < 0) return;
-          this.myHotel.availableRooms = next;
-          localStorage.setItem('exp_hotels', JSON.stringify(this.hotels));
-        },
-
-        addItem() {
-          if (!this.newItem.name || !this.newItem.phone) {
-            alert('कृपया नाम और मोबाइल नंबर भरें!');
-            return;
-          }
-          if (this.newItem.type === 'hotel') {
-            this.hotels.unshift({
-              id: Date.now(),
-              name: this.newItem.name,
-              city: this.newItem.city,
-              distance: 'Expressway Exit 1 km',
-              startingPrice: Number(this.newItem.startingPrice) || 1200,
-              availableRooms: 5,
-              phone: this.newItem.phone
-            });
-            localStorage.setItem('exp_hotels', JSON.stringify(this.hotels));
-          } else {
-            this.restaurants.unshift({
-              id: Date.now(),
-              name: this.newItem.name,
-              city: this.newItem.city,
-              distance: 'Expressway Exit',
-              type: 'Family Dhaba',
-              phone: this.newItem.phone
-            });
-            localStorage.setItem('exp_rests', JSON.stringify(this.restaurants));
-          }
-          alert('सफलतापूर्वक जोड़ा गया!');
-          this.newItem.name = '';
-          this.newItem.phone = '';
-          this.view = 'traveller';
         }
       };
     }
