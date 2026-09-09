@@ -46,7 +46,6 @@
             <input type="text" x-model="form.name" placeholder="उदा. हाईवे किंग रिजॉर्ट" class="w-full border border-slate-300 rounded-xl p-2.5 text-xs mt-1">
           </div>
 
-          <!-- GPS ऑटो-डिटेक्ट लोकेशन फ़ील्ड -->
           <div>
             <div class="flex justify-between items-center">
               <label class="text-[11px] font-bold text-slate-600">लोकेशन / शहर *</label>
@@ -91,7 +90,7 @@
         <div class="flex justify-between items-center mb-3">
           <div class="flex items-center gap-2">
             <h2 class="font-extrabold text-sm text-slate-900">📋 रजिस्टर्ड होटल्स सूची</h2>
-            <button @click="fetchHotels()" class="text-slate-400 hover:text-slate-700 text-xs">🔄</button>
+            <button @click="fetchHotels()" class="text-slate-400 hover:text-slate-700 text-xs">🔄 रिफ़्रेश</button>
           </div>
           <span class="text-[11px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-bold" x-text="'कुल: ' + hotels.length"></span>
         </div>
@@ -131,13 +130,16 @@
                   </td>
                 </tr>
               </template>
+              <tr x-show="hotels.length === 0">
+                <td colspan="6" class="p-4 text-center text-slate-400">अभी कोई होटल रजिस्टर नहीं है।</td>
+              </tr>
             </tbody>
           </table>
         </div>
       </div>
     </div>
 
-    <!-- QR कोड पॉपअप कार्ड -->
+    <!-- QR कोड पॉपअप -->
     <div x-show="activeQrHotel" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
       <div class="bg-white rounded-3xl p-6 max-w-sm w-full text-center shadow-2xl space-y-4">
         <div class="border-b pb-2">
@@ -164,7 +166,7 @@
 
   <script>
     const TURSO_PIPELINE_URL = "https://expresswaystay-govindaala.aws-ap-south-1.turso.io/v2/pipeline";
-    const TURSO_AUTH_TOKEN = "YOUR_TURSO_TOKEN"; // <-- यहाँ अपना Turso Token पेस्ट करें
+    const TURSO_AUTH_TOKEN = "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3ODg5OTE1MzIsImlkIjoiMDFhMDg4MzItM2UwMS03NGY5LTk3NTQtYTg4YjBkZTAyMTA1Iiwia2lkIjoiV0JkNlJ2dHFndUYtOHV1R2tnT0xSWWREU0lCaGVOem8xVy1QNXhBWkNVVSIsInJpZCI6ImE5OWVlZTcxLTNkZGItNDMzMi1hZDU5LTQzZmU4NWIwNjBhNiJ9.2igLL_0RTRvj6QJIq7enEUqoKFkx-v0OOpcL4Gc6dFzdYp3nDfaKyp740YD4B1e5cPnpIbHAy4ihec0vEdgcBg";
 
     function adminDesk() {
       return {
@@ -181,39 +183,40 @@
         },
 
         loginAdmin() {
-          if (this.pass === 'admin99') this.auth = true;
-          else alert('गलत मास्टर पासवर्ड!');
+          if (this.pass === 'admin99') {
+            this.auth = true;
+            this.fetchHotels();
+          } else {
+            alert('गलत मास्टर पासवर्ड!');
+          }
         },
 
-        // GPS ऑटो डिटेक्ट फ़ंक्शन
         detectCurrentLocation() {
           if (!navigator.geolocation) {
-            alert('आपके ब्राउज़र में GPS सपोर्ट नहीं है!');
+            alert('GPS सपोर्ट नहीं मिला!');
             return;
           }
           this.detectingLocation = true;
           navigator.geolocation.getCurrentPosition(
-            async (position) => {
-              const lat = position.coords.latitude;
-              const lon = position.coords.longitude;
+            async (pos) => {
+              const lat = pos.coords.latitude;
+              const lon = pos.coords.longitude;
               try {
-                // मुफ़्त और सुरक्षित रिवर्स जियोकोडिंग से शहर का नाम पहचानना
                 const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
                 const data = await res.json();
-                const address = data.address;
-                const detectedCity = address.city || address.town || address.village || address.state_district || address.state || 'Expressway Location';
-                this.form.city = detectedCity;
+                const addr = data.address;
+                this.form.city = addr.city || addr.town || addr.village || addr.state_district || addr.state || `${lat.toFixed(3)}, ${lon.toFixed(3)}`;
               } catch (e) {
                 this.form.city = `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
               } finally {
                 this.detectingLocation = false;
               }
             },
-            (error) => {
+            () => {
               this.detectingLocation = false;
-              alert('GPS अनुमति नहीं मिली या सिग्नल कमज़ोर है। कृपया लोकेशन हाथ से दर्ज करें।');
+              alert('GPS सिग्नल या अनुमति नहीं मिली। कृपया हाथ से लिखें।');
             },
-            { enableHighAccuracy: true, timeout: 10000 }
+            { enableHighAccuracy: true, timeout: 8000 }
           );
         },
 
@@ -221,7 +224,7 @@
           const res = await fetch(TURSO_PIPELINE_URL, {
             method: "POST",
             headers: {
-              "Authorization": `Bearer ${TURSO_AUTH_TOKEN}`,
+              "Authorization": `Bearer ${TURSO_AUTH_TOKEN.trim()}`,
               "Content-Type": "application/json"
             },
             body: JSON.stringify({
@@ -231,11 +234,21 @@
               ]
             })
           });
+
+          if (!res.ok) {
+            const errBody = await res.text();
+            throw new Error(`Turso सर्वर एरर (${res.status}): ${errBody}`);
+          }
+
           const data = await res.json();
+          if (data.results && data.results[0]?.type === "error") {
+            throw new Error(data.results[0].error.message);
+          }
+
           if (data.results && data.results[0]?.response?.result) {
             const execRes = data.results[0].response.result;
-            const colNames = execRes.cols.map(c => c.name);
-            return execRes.rows.map(row => {
+            const colNames = (execRes.cols || []).map(c => c.name);
+            return (execRes.rows || []).map(row => {
               const obj = {};
               row.forEach((cell, idx) => { obj[colNames[idx]] = cell.value; });
               return obj;
@@ -248,13 +261,14 @@
           try {
             this.hotels = await this.executeTurso("SELECT * FROM hotels ORDER BY id DESC");
           } catch (e) {
-            console.error("Fetch hotels failed", e);
+            console.error("होटल लोड एरर:", e);
+            if (this.auth) alert("डेटा लोड नहीं हुआ: " + e.message);
           }
         },
 
         async saveHotel() {
           if (!this.form.name || !this.form.city || !this.form.loginId || !this.form.pin || !this.form.phone) {
-            alert('कृपया होटल नाम, लोकेशन, लॉगिन आईडी, पिन और फोन नंबर भरें!');
+            alert('कृपया सभी ज़रूरी बॉक्स (नाम, लोकेशन, आईडी, पिन, फ़ोन) भरें!');
             return;
           }
           this.saving = true;
@@ -272,11 +286,11 @@
 
           try {
             await this.executeTurso(sql);
-            alert('होटल सफलतापूर्वक रजिस्टर हो गया!');
+            alert('✅ होटल Turso डेटाबेस में सुरक्षित सेव हो गया!');
             this.form.name = ''; this.form.city = ''; this.form.loginId = ''; this.form.pin = ''; this.form.phone = '';
             await this.fetchHotels();
           } catch (err) {
-            alert('होटल जोड़ने में समस्या आई। आईडी पहले से मौजूद हो सकती है।');
+            alert('❌ सेव नहीं हुआ: ' + err.message);
           } finally {
             this.saving = false;
           }
