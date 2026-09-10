@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>होटल ओनर पोर्टल | Expressway Stay</title>
+  <title>पार्टनर पोर्टल | Expressway Stay & Food</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
@@ -14,21 +14,20 @@
 </head>
 <body class="bg-slate-900 min-h-screen text-slate-100 flex flex-col justify-between p-3 sm:p-6" x-data="ownerPortal()" x-init="init()" x-cloak>
 
-  <!-- 1. लॉगिन व रजिस्ट्रेशन गेट -->
+  <!-- 1. लॉगिन व रजिस्ट्रेशन कंटेनर -->
   <div x-show="!isLoggedIn" class="w-full max-w-md mx-auto my-auto bg-slate-800 border border-slate-700 p-5 sm:p-6 rounded-3xl shadow-2xl space-y-4">
     
-    <!-- टैब स्विच: लॉगिन बनाम नया रजिस्ट्रेशन -->
-    <div class="flex bg-slate-900/80 p-1 rounded-2xl border border-slate-700 text-xs font-bold">
+    <div class="flex bg-slate-900/90 p-1.5 rounded-2xl border border-slate-700 text-xs font-bold">
       <button @click="mode = 'login'" :class="mode === 'login' ? 'bg-amber-400 text-slate-950 shadow' : 'text-slate-400'" class="w-1/2 py-2.5 rounded-xl transition">
         🔑 लॉगिन करें
       </button>
       <button @click="mode = 'register'" :class="mode === 'register' ? 'bg-amber-400 text-slate-950 shadow' : 'text-slate-400'" class="w-1/2 py-2.5 rounded-xl transition">
-        📝 नई रिक्वेस्ट भेजें
+        📝 नया रजिस्ट्रेशन (तुरंत लाइव)
       </button>
     </div>
 
     <!-- मोड A: लॉगिन फ़ॉर्म -->
-    <div x-show="mode === 'login'" class="space-y-3 pt-2">
+    <div x-show="mode === 'login'" class="space-y-3.5 pt-2">
       <div>
         <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">लॉगिन आईडी (मोबाइल नंबर)</label>
         <input type="text" x-model="loginId" placeholder="उदा. 9829012345" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl p-3 text-xs mt-1 outline-none focus:border-amber-400 font-mono">
@@ -38,38 +37,50 @@
         <input type="password" maxlength="6" x-model="loginPin" placeholder="••••••" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl p-3 text-sm mt-1 outline-none focus:border-amber-400 font-mono tracking-widest text-center text-lg">
       </div>
 
-      <button @click="doLogin()" :disabled="loading" class="w-full bg-amber-400 active:bg-amber-500 text-slate-950 font-extrabold py-3 rounded-xl text-xs transition shadow flex items-center justify-center gap-2 mt-2">
-        <span x-show="!loading">डैशबोर्ड खोलें ➔</span>
+      <button @click="doLogin()" :disabled="loading" class="w-full bg-amber-400 active:bg-amber-500 text-slate-950 font-extrabold py-3.5 rounded-xl text-xs transition shadow flex items-center justify-center gap-2 mt-2">
+        <span x-show="!loading">कंट्रोल डैशबोर्ड खोलें ➔</span>
         <span x-show="loading" class="w-4 h-4 border-2 border-slate-950 border-t-transparent rounded-full animate-spin"></span>
       </button>
     </div>
 
-    <!-- मोड B: नया होटल रजिस्ट्रेशन रिक्वेस्ट फ़ॉर्म -->
+    <!-- मोड B: नया रजिस्ट्रेशन फ़ॉर्म (Instant Live) -->
     <div x-show="mode === 'register'" class="space-y-3 pt-1">
       <div>
-        <label class="text-[11px] font-bold text-slate-400">होटल का नाम *</label>
-        <input type="text" x-model="reg.name" placeholder="उदा. हाईवे किंग होटल" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl p-2.5 text-xs mt-1">
+        <label class="text-[11px] font-bold text-slate-400 block mb-1">आप क्या रजिस्टर कर रहे हैं? *</label>
+        <div class="grid grid-cols-2 gap-2">
+          <button type="button" @click="reg.category = 'hotel'" :class="reg.category === 'hotel' ? 'bg-indigo-600 text-white border-indigo-500 shadow' : 'bg-slate-900 text-slate-400 border-slate-700'" class="py-2 px-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition">
+            <span>🏨</span> होटल (कमरे)
+          </button>
+          <button type="button" @click="reg.category = 'restaurant'" :class="reg.category === 'restaurant' ? 'bg-orange-600 text-white border-orange-500 shadow' : 'bg-slate-900 text-slate-400 border-slate-700'" class="py-2 px-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition">
+            <span>🍽️</span> रेस्टोरेंट / ढाबा
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <label class="text-[11px] font-bold text-slate-400">होटल / ढाबे का नाम *</label>
+        <input type="text" x-model="reg.name" placeholder="उदा. हाईवे किंग" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl p-2.5 text-xs mt-1">
       </div>
 
       <div>
         <div class="flex justify-between items-center">
-          <label class="text-[11px] font-bold text-slate-400">लोकेशन (GPS) *</label>
-          <button type="button" @click="detectLocation()" :disabled="detectingGps" class="text-[10px] bg-indigo-600 hover:bg-indigo-700 text-white px-2 py-0.5 rounded font-bold">
-            <span x-show="!detectingGps">📍 GPS से चुनें</span>
+          <label class="text-[11px] font-bold text-slate-400">सटीक GPS लोकेशन *</label>
+          <button type="button" @click="detectLocation()" :disabled="detectingGps" class="text-[10px] bg-emerald-600 hover:bg-emerald-700 text-white px-2 py-0.5 rounded font-bold flex items-center gap-1">
+            <span x-show="!detectingGps">📍 GPS से भरें</span>
             <span x-show="detectingGps">खोज रहा है... ⏳</span>
           </button>
         </div>
-        <input type="text" x-model="reg.city" placeholder="GPS बटन दबाएँ या शहर/कट लिखें" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl p-2.5 text-xs mt-1 font-medium">
+        <input type="text" x-model="reg.city" placeholder="GPS बटन दबाएँ या शहर लिखें" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl p-2.5 text-xs mt-1">
       </div>
 
       <div class="grid grid-cols-2 gap-2">
         <div>
-          <label class="text-[11px] font-bold text-slate-400">अपनी लॉगिन आईडी *</label>
+          <label class="text-[11px] font-bold text-slate-400">लॉगिन आईडी (मोबाइल) *</label>
           <input type="text" x-model="reg.loginId" placeholder="मोबाइल नंबर" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl p-2.5 text-xs mt-1 font-mono">
         </div>
         <div>
-          <label class="text-[11px] font-bold text-slate-400">6-डिजिट पिन चुनें *</label>
-          <input type="password" maxlength="6" x-model="reg.pin" placeholder="6 अंक (उदा. 123456)" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl p-2.5 text-xs mt-1 font-mono tracking-widest text-center">
+          <label class="text-[11px] font-bold text-slate-400">6-अंक पिन चुनें *</label>
+          <input type="password" maxlength="6" x-model="reg.pin" placeholder="6 अंक" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl p-2.5 text-xs mt-1 font-mono tracking-widest text-center">
         </div>
       </div>
 
@@ -79,33 +90,34 @@
           <input type="text" x-model="reg.phone" placeholder="फ़ोन नंबर" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl p-2.5 text-xs mt-1">
         </div>
         <div>
-          <label class="text-[11px] font-bold text-slate-400">कुल कमरे *</label>
+          <label class="text-[11px] font-bold text-slate-400" x-text="reg.category === 'hotel' ? 'कुल कमरे *' : 'सिटिंग क्षमता'"></label>
           <input type="number" x-model="reg.totalRooms" placeholder="10" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl p-2.5 text-xs mt-1">
         </div>
       </div>
 
       <div>
-        <label class="text-[11px] font-bold text-slate-400">शुरुआती किराया (₹)</label>
-        <input type="number" x-model="reg.price" placeholder="1500" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl p-2.5 text-xs mt-1">
+        <label class="text-[11px] font-bold text-slate-400" x-text="reg.category === 'hotel' ? 'शुरुआती कमरा किराया (₹)' : 'शुरुआती थाली दर (₹)'"></label>
+        <input type="number" x-model="reg.price" placeholder="उदा. 1500 या 150" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl p-2.5 text-xs mt-1">
       </div>
 
-      <button @click="submitRegistration()" :disabled="submitting" class="w-full bg-emerald-500 active:bg-emerald-600 text-slate-950 font-extrabold py-3 rounded-xl text-xs transition shadow flex items-center justify-center gap-2 mt-2">
-        <span x-show="!submitting">📤 रजिस्ट्रेशन रिक्वेस्ट भेजें</span>
+      <button @click="submitRegistration()" :disabled="submitting" class="w-full bg-emerald-500 active:bg-emerald-600 text-slate-950 font-extrabold py-3.5 rounded-xl text-xs transition shadow flex items-center justify-center gap-2 mt-2">
+        <span x-show="!submitting">🚀 रजिस्टर करें और तुरंत लाइव हों</span>
         <span x-show="submitting" class="w-4 h-4 border-2 border-slate-950 border-t-transparent rounded-full animate-spin"></span>
       </button>
-      <p class="text-[10px] text-center text-slate-400">रिक्वेस्ट भेजने के बाद सुपर एडमिन द्वारा सत्यापन होते ही यह लाइव होगा।</p>
+      <p class="text-[10px] text-center text-slate-400">रजिस्ट्रेशन के तुरंत बाद आपका होटल लाइव हो जाएगा। सुपर एडमिन द्वारा बाद में सत्यापन किया जा सकता है।</p>
     </div>
 
   </div>
 
-  <!-- 2. ओनर कंट्रोल डैशबोर्ड (सत्यापन के बाद) -->
+  <!-- 2. ओनर कंट्रोल डैशबोर्ड -->
   <div x-show="isLoggedIn" class="w-full max-w-lg mx-auto space-y-4 my-auto">
-    <div class="bg-slate-800/80 border border-slate-700 p-4 rounded-2xl flex justify-between items-center shadow-md">
+    <div class="bg-slate-800/90 border border-slate-700 p-4 rounded-2xl flex justify-between items-center shadow-md">
       <div>
-        <span class="text-[10px] font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
-          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> लाइव एक्टिव होटल
-        </span>
-        <h2 class="text-base font-extrabold text-white mt-0.5" x-text="hotel.name"></h2>
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full" :class="hotel.category === 'restaurant' ? 'bg-orange-950 text-orange-400 border border-orange-800' : 'bg-indigo-950 text-indigo-400 border border-indigo-800'" x-text="hotel.category === 'restaurant' ? '🍽️ लाइव रेस्टोरेंट' : '🏨 लाइव होटल'"></span>
+        </div>
+        <h2 class="text-base font-extrabold text-white mt-1" x-text="hotel.name"></h2>
         <p class="text-xs text-slate-400" x-text="'📍 ' + hotel.city"></p>
       </div>
       <button @click="logout()" class="text-xs bg-slate-700 active:bg-slate-600 text-slate-300 px-3 py-1.5 rounded-xl font-bold border border-slate-600">
@@ -113,50 +125,77 @@
       </button>
     </div>
 
-    <!-- कमरों का कंट्रोलर (+ / −) -->
-    <div class="bg-slate-800 border border-slate-700 p-6 rounded-3xl shadow-xl text-center space-y-5">
-      <div>
-        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">यात्रियों को दिख रहे खाली कमरे</span>
-        <div class="flex items-center justify-center gap-2 mt-2">
-          <span class="text-6xl font-black font-mono" :class="hotel.available_rooms > 0 ? 'text-emerald-400' : 'text-rose-500'" x-text="hotel.available_rooms"></span>
-          <span class="text-xl font-bold text-slate-500" x-text="'/ ' + hotel.total_rooms"></span>
+    <!-- होटल इन्वेंटरी -->
+    <template x-if="hotel.category !== 'restaurant'">
+      <div class="bg-slate-800 border border-slate-700 p-6 rounded-3xl shadow-xl text-center space-y-5">
+        <div>
+          <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">यात्रियों को दिख रहे खाली कमरे</span>
+          <div class="flex items-center justify-center gap-2 mt-2">
+            <span class="text-6xl font-black font-mono" :class="hotel.available_rooms > 0 ? 'text-emerald-400' : 'text-rose-500'" x-text="hotel.available_rooms"></span>
+            <span class="text-xl font-bold text-slate-500" x-text="'/ ' + hotel.total_rooms"></span>
+          </div>
+          <p class="text-xs mt-1 font-semibold" :class="hotel.available_rooms > 0 ? 'text-emerald-300' : 'text-rose-400'" x-text="hotel.available_rooms > 0 ? 'बुकिंग के लिए उपलब्ध' : 'हाउसफुल (Sold Out)'"></p>
         </div>
-        <p class="text-xs mt-1 font-semibold" :class="hotel.available_rooms > 0 ? 'text-emerald-300' : 'text-rose-400'" x-text="hotel.available_rooms > 0 ? 'यात्री बुकिंग के लिए उपलब्ध' : 'हाउसफुल (Sold Out)'"></p>
-      </div>
 
-      <div class="grid grid-cols-2 gap-3">
-        <button @click="changeRooms(-1)" :disabled="hotel.available_rooms <= 0 || updating" class="bg-slate-700 active:bg-rose-600 border border-slate-600 active:border-rose-500 text-white font-extrabold py-5 rounded-2xl text-2xl transition disabled:opacity-40 flex items-center justify-center gap-2">
-          <span>−</span> <span class="text-sm font-bold">1 रूम घटाएँ</span>
-        </button>
-        <button @click="changeRooms(1)" :disabled="hotel.available_rooms >= hotel.total_rooms || updating" class="bg-emerald-600 active:bg-emerald-700 text-white font-extrabold py-5 rounded-2xl text-2xl transition disabled:opacity-40 flex items-center justify-center gap-2 shadow-lg shadow-emerald-900/30">
-          <span>+</span> <span class="text-sm font-bold">1 रूम बढ़ाएँ</span>
-        </button>
-      </div>
+        <div class="grid grid-cols-2 gap-3">
+          <button @click="changeRooms(-1)" :disabled="hotel.available_rooms <= 0 || updating" class="bg-slate-700 active:bg-rose-600 border border-slate-600 text-white font-extrabold py-5 rounded-2xl text-2xl transition disabled:opacity-40 flex items-center justify-center gap-2">
+            <span>−</span> <span class="text-sm font-bold">1 कमरा घटाएँ</span>
+          </button>
+          <button @click="changeRooms(1)" :disabled="hotel.available_rooms >= hotel.total_rooms || updating" class="bg-emerald-600 active:bg-emerald-700 text-white font-extrabold py-5 rounded-2xl text-2xl transition disabled:opacity-40 flex items-center justify-center gap-2 shadow-lg shadow-emerald-900/30">
+            <span>+</span> <span class="text-sm font-bold">1 कमरा बढ़ाएँ</span>
+          </button>
+        </div>
 
-      <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-700">
-        <button @click="setExactRooms(0)" :disabled="updating" class="bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs font-bold py-2.5 rounded-xl">
-          🚫 हाउसफुल (0 रूम)
-        </button>
-        <button @click="setExactRooms(hotel.total_rooms)" :disabled="updating" class="bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-bold py-2.5 rounded-xl">
-          🔄 सभी खाली (<span x-text="hotel.total_rooms"></span>)
-        </button>
+        <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-700">
+          <button @click="setExactRooms(0)" :disabled="updating" class="bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs font-bold py-2 rounded-xl">
+            🚫 हाउसफुल (0)
+          </button>
+          <button @click="setExactRooms(hotel.total_rooms)" :disabled="updating" class="bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-bold py-2 rounded-xl">
+            🔄 सभी खाली (<span x-text="hotel.total_rooms"></span>)
+          </button>
+        </div>
       </div>
-    </div>
+    </template>
 
-    <!-- किराया अपडेट -->
+    <!-- रेस्टोरेंट स्थिति -->
+    <template x-if="hotel.category === 'restaurant'">
+      <div class="bg-slate-800 border border-slate-700 p-6 rounded-3xl shadow-xl text-center space-y-4">
+        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">डाइनिंग व भोजन स्थिति</span>
+        <div class="p-4 rounded-2xl border" :class="Number(hotel.available_rooms) > 0 ? 'bg-emerald-950/40 border-emerald-800 text-emerald-300' : 'bg-rose-950/40 border-rose-800 text-rose-300'">
+          <span class="text-4xl block mb-1" x-text="Number(hotel.available_rooms) > 0 ? '🍲' : '🚫'"></span>
+          <h3 class="text-lg font-black" x-text="Number(hotel.available_rooms) > 0 ? 'सेवा चालू है' : 'अभी बंद है'"></h3>
+        </div>
+        <div class="grid grid-cols-2 gap-3 pt-2">
+          <button @click="setExactRooms(1)" :disabled="updating" class="bg-emerald-600 active:bg-emerald-700 text-white font-bold py-3.5 rounded-xl text-xs">
+            ✓ ढाबा / रेस्टोरेंट खुला है
+          </button>
+          <button @click="setExactRooms(0)" :disabled="updating" class="bg-rose-600 active:bg-rose-700 text-white font-bold py-3.5 rounded-xl text-xs">
+            ✕ अभी बंद है
+          </button>
+        </div>
+      </div>
+    </template>
+
+    <!-- किराया कार्ड -->
     <div class="bg-slate-800/90 border border-slate-700 p-4 rounded-2xl flex items-center justify-between gap-4">
       <div>
-        <label class="text-[11px] font-bold text-slate-400 block">शुरुआती किराया (₹)</label>
-        <input type="number" x-model="hotel.starting_price" class="bg-slate-900 border border-slate-700 text-white font-bold rounded-xl px-3 py-2 text-xs mt-1 w-28 outline-none focus:border-amber-400">
+        <label class="text-[11px] font-bold text-slate-400 block" x-text="hotel.category === 'restaurant' ? 'शुरुआती थाली दर (₹)' : 'कमरा किराया (₹)'"></label>
+        <input type="number" x-model="hotel.starting_price" class="bg-slate-900 border border-slate-700 text-white font-bold rounded-xl px-3 py-2 text-xs mt-1 w-32 outline-none focus:border-amber-400">
       </div>
       <button @click="updatePrice()" :disabled="updating" class="bg-amber-400 active:bg-amber-500 text-slate-950 text-xs font-extrabold px-4 py-2.5 rounded-xl shadow mt-4">
-        किराया बदलें
+        रेट अपडेट करें
       </button>
+    </div>
+
+    <div class="text-center pt-1">
+      <a :href="'https://govindaala.github.io/Expressway_stay/Index.html'" target="_blank" class="text-xs text-indigo-400 hover:underline inline-flex items-center gap-1 font-semibold">
+        👁️ यात्री स्क्रीन पर लाइव देखें ➔
+      </a>
     </div>
   </div>
 
   <footer class="text-center text-[11px] text-slate-600 py-2">
-    Expressway Stay • क्लाउड इन्वेंटरी नेटवर्क
+    Expressway Stay & Food • पार्टनर नेटवर्क
   </footer>
 
   <script>
@@ -173,8 +212,8 @@
         updating: false,
         detectingGps: false,
         submitting: false,
-        reg: { name: '', city: '', loginId: '', pin: '', phone: '', totalRooms: 10, price: 1500 },
-        hotel: { login_id: '', name: '', city: '', total_rooms: 10, available_rooms: 0, starting_price: 1500 },
+        reg: { category: 'hotel', name: '', city: '', loginId: '', pin: '', phone: '', totalRooms: 10, price: 1500, lat: null, lon: null },
+        hotel: { login_id: '', category: 'hotel', name: '', city: '', total_rooms: 10, available_rooms: 0, starting_price: 1500 },
 
         init() {
           const saved = localStorage.getItem('stay_owner_hotel');
@@ -190,30 +229,27 @@
         },
 
         detectLocation() {
-          if (!navigator.geolocation) {
-            alert('GPS सपोर्ट नहीं मिला!');
-            return;
-          }
+          if (!navigator.geolocation) return alert('GPS उपलब्ध नहीं है!');
           this.detectingGps = true;
           navigator.geolocation.getCurrentPosition(
             async (pos) => {
-              const lat = pos.coords.latitude;
-              const lon = pos.coords.longitude;
+              this.reg.lat = pos.coords.latitude;
+              this.reg.lon = pos.coords.longitude;
               try {
-                const res = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`);
+                const res = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${this.reg.lat}&longitude=${this.reg.lon}&localityLanguage=en`);
                 const data = await res.json();
                 const locality = data.locality || data.city || '';
                 const district = data.localityInfo?.administrative?.[2]?.name || data.principalSubdivision || '';
-                this.reg.city = (locality && district && locality !== district) ? `${locality}, ${district}` : (locality || district || `${lat.toFixed(4)}, ${lon.toFixed(4)}`);
+                this.reg.city = (locality && district && locality !== district) ? `${locality},${district}` : (locality || district || `${this.reg.lat.toFixed(4)},${this.reg.lon.toFixed(4)}`);
               } catch (e) {
-                this.reg.city = `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+                this.reg.city = `${this.reg.lat.toFixed(4)},${this.reg.lon.toFixed(4)}`;
               } finally {
                 this.detectingGps = false;
               }
             },
             () => {
               this.detectingGps = false;
-              alert('GPS अनुमति नहीं मिली। कृपया हाथ से लोकेशन लिखें।');
+              alert('GPS अनुमति नहीं मिली। शहर का नाम हाथ से लिखें।');
             },
             { enableHighAccuracy: false, timeout: 15000, maximumAge: 60000 }
           );
@@ -240,7 +276,7 @@
             const cols = (execRes.cols || []).map(c => c.name);
             return (execRes.rows || []).map(row => {
               const obj = {};
-              row.forEach((c, idx) => { obj[cols[idx]] = c.value; });
+              row.forEach((cell, idx) => { obj[cols[idx]] = cell.value; });
               return obj;
             });
           }
@@ -249,13 +285,9 @@
 
         async submitRegistration() {
           if (!this.reg.name || !this.reg.city || !this.reg.loginId || !this.reg.pin || !this.reg.phone) {
-            alert('कृपया सभी ज़रूरी बॉक्स भरें!');
-            return;
+            return alert('कृपया सभी जरूरी फ़ील्ड्स भरें!');
           }
-          if (this.reg.pin.length !== 6) {
-            alert('पिन ठीक 6 अंकों का होना चाहिए!');
-            return;
-          }
+          if (this.reg.pin.length !== 6) return alert('पिन 6 अंकों का रखें!');
           this.submitting = true;
 
           const cleanName = this.reg.name.trim().replace(/'/g, "''");
@@ -263,54 +295,52 @@
           const cleanId = this.reg.loginId.trim().replace(/'/g, "''");
           const cleanPin = this.reg.pin.trim().replace(/'/g, "''");
           const cleanPhone = this.reg.phone.trim().replace(/'/g, "''");
-          const rooms = Number(this.reg.totalRooms) || 10;
-          const price = Number(this.reg.price) || 1500;
+          const cat = this.reg.category || 'hotel';
+          const rooms = Number(this.reg.totalRooms) || (cat === 'restaurant' ? 1 : 10);
+          const price = Number(this.reg.price) || (cat === 'restaurant' ? 150 : 1500);
+          const latVal = this.reg.lat !== null ? this.reg.lat : 'NULL';
+          const lonVal = this.reg.lon !== null ? this.reg.lon : 'NULL';
 
-          // is_active = 0 (पेंडिंग अप्रूवल)
-          const sql = `INSERT INTO hotels (login_id, pin, name, city, phone, total_rooms, available_rooms, starting_price, is_active)
-                       VALUES ('${cleanId}', '${cleanPin}', '${cleanName}', '${cleanCity}', '${cleanPhone}', ${rooms}, ${rooms}, ${price}, 0)`;
+          // is_active = 1 (तुरंत लाइव)
+          const sql = `INSERT INTO hotels (login_id, pin, name, city, phone, total_rooms, available_rooms, starting_price, is_active, category, lat, lon)
+                       VALUES ('${cleanId}', '${cleanPin}', '${cleanName}', '${cleanCity}', '${cleanPhone}', ${rooms},${rooms}, ${price}, 1, '${cat}', ${latVal},${lonVal})`;
 
           try {
             await this.executeTurso(sql);
-            alert('✅ आपकी रजिस्ट्रेशन रिक्वेस्ट सफलतापूर्वक भेज दी गई है!\n\nसुपर एडमिन द्वारा वेरिफ़ाई होते ही आपका होटल लाइव हो जाएगा।');
+            alert('🎉 आपका होटल/रेस्टोरेंट तुरंत लाइव हो गया है!\n\nअब आप सीधे अपनी आईडी और पिन से लॉगिन कर सकते हैं।');
             this.mode = 'login';
             this.loginId = this.reg.loginId;
-            this.reg = { name: '', city: '', loginId: '', pin: '', phone: '', totalRooms: 10, price: 1500 };
+            this.loginPin = this.reg.pin;
           } catch (e) {
-            alert('रिक्वेस्ट भेजने में त्रुटि: यह मोबाइल/आईडी पहले से रजिस्टर हो सकती है।');
+            alert('त्रुटि: यह मोबाइल नंबर पहले से रजिस्टर्ड है।');
           } finally {
             this.submitting = false;
           }
         },
 
         async doLogin() {
-          if (!this.loginId || !this.loginPin) {
-            alert('कृपया लॉगिन आईडी और 6 अंकों का पिन डालें!');
-            return;
-          }
+          if (!this.loginId || !this.loginPin) return alert('कृपया आईडी और पिन डालें!');
           this.loading = true;
-          const cleanId = this.loginId.trim().replace(/'/g, "''");
-          const cleanPin = this.loginPin.trim().replace(/'/g, "''");
 
           try {
-            const rows = await this.executeTurso(`SELECT * FROM hotels WHERE login_id = '${cleanId}' AND pin = '${cleanPin}' LIMIT 1`);
+            const rows = await this.executeTurso(`SELECT * FROM hotels WHERE login_id = '${this.loginId.trim()}' AND pin = '${this.loginPin.trim()}' LIMIT 1`);
             if (rows && rows.length > 0) {
               const h = rows[0];
               if (Number(h.is_active) === 0) {
-                alert('⚠️ आपकी रिक्वेस्ट अभी पेंडिंग है!\nएडमिन द्वारा सत्यापन (Approve) के बाद ही आप लॉगिन कर पाएंगे।');
-                return;
+                return alert('⚠️ आपका खाता एडमिन द्वारा ब्लॉक कर दिया गया है!');
               }
               this.hotel = h;
               this.hotel.available_rooms = Number(h.available_rooms);
               this.hotel.total_rooms = Number(h.total_rooms);
               this.hotel.starting_price = Number(h.starting_price);
+              this.hotel.category = h.category || 'hotel';
               this.isLoggedIn = true;
               localStorage.setItem('stay_owner_hotel', JSON.stringify(this.hotel));
             } else {
-              alert('गलत आईडी या पिन! कृपया पुनः प्रयास करें।');
+              alert('गलत आईडी या पिन!');
             }
           } catch (e) {
-            alert('एरर: ' + e.message);
+            alert('लॉगिन एरर: ' + e.message);
           } finally {
             this.loading = false;
           }
@@ -323,6 +353,7 @@
               this.hotel.available_rooms = Number(rows[0].available_rooms);
               this.hotel.total_rooms = Number(rows[0].total_rooms);
               this.hotel.starting_price = Number(rows[0].starting_price);
+              this.hotel.category = rows[0].category || 'hotel';
               localStorage.setItem('stay_owner_hotel', JSON.stringify(this.hotel));
             }
           } catch (e) {}
@@ -343,7 +374,7 @@
             localStorage.setItem('stay_owner_hotel', JSON.stringify(this.hotel));
           } catch (e) {
             this.hotel.available_rooms = prev;
-            alert('अपडेट नहीं हो पाया: ' + e.message);
+            alert('अपडेट नहीं हुआ: ' + e.message);
           } finally {
             this.updating = false;
           }
@@ -351,12 +382,12 @@
 
         async updatePrice() {
           const p = Number(this.hotel.starting_price);
-          if (!p || p < 0) return alert('मान्य किराया दर्ज करें');
+          if (!p || p < 0) return alert('मान्य रकम लिखें');
           this.updating = true;
           try {
             await this.executeTurso(`UPDATE hotels SET starting_price = ${p} WHERE login_id = '${this.hotel.login_id}'`);
             localStorage.setItem('stay_owner_hotel', JSON.stringify(this.hotel));
-            alert('किराया अपडेट हो गया!');
+            alert('दर अपडेट हो गई!');
           } finally {
             this.updating = false;
           }
