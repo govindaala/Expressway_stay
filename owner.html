@@ -22,7 +22,7 @@
         🔑 लॉगिन करें
       </button>
       <button @click="mode = 'register'" :class="mode === 'register' ? 'bg-amber-400 text-slate-950 shadow' : 'text-slate-400'" class="w-1/2 py-2.5 rounded-xl transition">
-        📝 नया रजिस्ट्रेशन (तुरंत लाइव)
+        📝 नया रजिस्ट्रेशन
       </button>
     </div>
 
@@ -43,13 +43,13 @@
       </button>
     </div>
 
-    <!-- मोड B: नया रजिस्ट्रेशन फ़ॉर्म (Instant Live) -->
+    <!-- मोड B: नया रजिस्ट्रेशन फ़ॉर्म -->
     <div x-show="mode === 'register'" class="space-y-3 pt-1">
       <div>
-        <label class="text-[11px] font-bold text-slate-400 block mb-1">आप क्या रजिस्टर कर रहे हैं? *</label>
+        <label class="text-[11px] font-bold text-slate-400 block mb-1">बिजनेस कैटेगरी चुनें *</label>
         <div class="grid grid-cols-2 gap-2">
           <button type="button" @click="reg.category = 'hotel'" :class="reg.category === 'hotel' ? 'bg-indigo-600 text-white border-indigo-500 shadow' : 'bg-slate-900 text-slate-400 border-slate-700'" class="py-2 px-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition">
-            <span>🏨</span> होटल (कमरे)
+            <span>🏨</span> होटल (कमरे / Stay)
           </button>
           <button type="button" @click="reg.category = 'restaurant'" :class="reg.category === 'restaurant' ? 'bg-orange-600 text-white border-orange-500 shadow' : 'bg-slate-900 text-slate-400 border-slate-700'" class="py-2 px-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition">
             <span>🍽️</span> रेस्टोरेंट / ढाबा
@@ -59,7 +59,7 @@
 
       <div>
         <label class="text-[11px] font-bold text-slate-400">होटल / ढाबे का नाम *</label>
-        <input type="text" x-model="reg.name" placeholder="उदा. हाईवे किंग" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl p-2.5 text-xs mt-1">
+        <input type="text" x-model="reg.name" placeholder="उदा. हाईवे किंग पैलेस" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl p-2.5 text-xs mt-1">
       </div>
 
       <div>
@@ -84,27 +84,58 @@
         </div>
       </div>
 
-      <div class="grid grid-cols-2 gap-2">
-        <div>
-          <label class="text-[11px] font-bold text-slate-400">कॉलिंग फ़ोन *</label>
-          <input type="text" x-model="reg.phone" placeholder="फ़ोन नंबर" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl p-2.5 text-xs mt-1">
-        </div>
-        <div>
-          <label class="text-[11px] font-bold text-slate-400" x-text="reg.category === 'hotel' ? 'कुल कमरे *' : 'सिटिंग क्षमता'"></label>
-          <input type="number" x-model="reg.totalRooms" placeholder="10" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl p-2.5 text-xs mt-1">
-        </div>
-      </div>
-
       <div>
-        <label class="text-[11px] font-bold text-slate-400" x-text="reg.category === 'hotel' ? 'शुरुआती कमरा किराया (₹)' : 'शुरुआती थाली दर (₹)'"></label>
-        <input type="number" x-model="reg.price" placeholder="उदा. 1500 या 150" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl p-2.5 text-xs mt-1">
+        <label class="text-[11px] font-bold text-slate-400">कॉलिंग फ़ोन नंबर *</label>
+        <input type="text" x-model="reg.phone" placeholder="यात्री इसी नंबर पर कॉल करेंगे" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl p-2.5 text-xs mt-1">
       </div>
 
-      <button @click="submitRegistration()" :disabled="submitting" class="w-full bg-emerald-500 active:bg-emerald-600 text-slate-950 font-extrabold py-3.5 rounded-xl text-xs transition shadow flex items-center justify-center gap-2 mt-2">
+      <!-- होटल के लिए: AC व नॉन-AC कमरों का अलग-अलग सेट -->
+      <template x-if="reg.category === 'hotel'">
+        <div class="space-y-2 pt-1">
+          <!-- ❄️ AC Rooms -->
+          <div class="p-2.5 rounded-xl bg-slate-900/80 border border-slate-700 space-y-1">
+            <span class="text-[11px] font-bold text-sky-400 flex items-center gap-1">❄️ AC कमरा सेटअप</span>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="text-[10px] text-slate-400">कुल AC कमरे</label>
+                <input type="number" x-model="reg.ac_rooms_total" placeholder="5" class="w-full bg-slate-800 border border-slate-600 text-white rounded-lg p-2 text-xs font-bold">
+              </div>
+              <div>
+                <label class="text-[10px] text-slate-400">AC कमरा किराया (₹)</label>
+                <input type="number" x-model="reg.ac_price" placeholder="2000" class="w-full bg-slate-800 border border-slate-600 text-white rounded-lg p-2 text-xs font-bold">
+              </div>
+            </div>
+          </div>
+
+          <!-- 🌀 Non-AC Rooms -->
+          <div class="p-2.5 rounded-xl bg-slate-900/80 border border-slate-700 space-y-1">
+            <span class="text-[11px] font-bold text-amber-400 flex items-center gap-1">🌀 नॉन-AC कमरा सेटअप</span>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="text-[10px] text-slate-400">कुल नॉन-AC कमरे</label>
+                <input type="number" x-model="reg.non_ac_rooms_total" placeholder="10" class="w-full bg-slate-800 border border-slate-600 text-white rounded-lg p-2 text-xs font-bold">
+              </div>
+              <div>
+                <label class="text-[10px] text-slate-400">नॉन-AC कमरा किराया (₹)</label>
+                <input type="number" x-model="reg.non_ac_price" placeholder="1200" class="w-full bg-slate-800 border border-slate-600 text-white rounded-lg p-2 text-xs font-bold">
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <!-- रेस्टोरेंट के लिए रेट -->
+      <template x-if="reg.category === 'restaurant'">
+        <div>
+          <label class="text-[11px] font-bold text-slate-400">शुरुआती थाली / भोजन दर (₹)</label>
+          <input type="number" x-model="reg.price" placeholder="उदा. 150" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl p-2.5 text-xs mt-1">
+        </div>
+      </template>
+
+      <button @click="submitRegistration()" :disabled="submitting" class="w-full bg-emerald-500 active:bg-emerald-600 text-slate-950 font-extrabold py-3 rounded-xl text-xs transition shadow flex items-center justify-center gap-2 mt-2">
         <span x-show="!submitting">🚀 रजिस्टर करें और तुरंत लाइव हों</span>
         <span x-show="submitting" class="w-4 h-4 border-2 border-slate-950 border-t-transparent rounded-full animate-spin"></span>
       </button>
-      <p class="text-[10px] text-center text-slate-400">रजिस्ट्रेशन के तुरंत बाद आपका होटल लाइव हो जाएगा। सुपर एडमिन द्वारा बाद में सत्यापन किया जा सकता है।</p>
     </div>
 
   </div>
@@ -125,35 +156,76 @@
       </button>
     </div>
 
-    <!-- होटल इन्वेंटरी -->
+    <!-- होटल इन्वेंटरी: AC और नॉन-AC दोनों का अलग-अलग नियंत्रण -->
     <template x-if="hotel.category !== 'restaurant'">
-      <div class="bg-slate-800 border border-slate-700 p-6 rounded-3xl shadow-xl text-center space-y-5">
-        <div>
-          <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">यात्रियों को दिख रहे खाली कमरे</span>
-          <div class="flex items-center justify-center gap-2 mt-2">
-            <span class="text-6xl font-black font-mono" :class="hotel.available_rooms > 0 ? 'text-emerald-400' : 'text-rose-500'" x-text="hotel.available_rooms"></span>
-            <span class="text-xl font-bold text-slate-500" x-text="'/ ' + hotel.total_rooms"></span>
+      <div class="space-y-3">
+        
+        <!-- ❄️ 1. AC कमरा कार्ड -->
+        <div class="bg-slate-800 border border-slate-700 p-4 rounded-3xl shadow-lg space-y-3">
+          <div class="flex justify-between items-center">
+            <span class="text-xs font-black text-sky-400 flex items-center gap-1.5">
+              <span>❄️</span> AC कमरे
+            </span>
+            <div class="flex items-center gap-1.5">
+              <span class="text-2xl font-black font-mono" :class="hotel.ac_rooms_available > 0 ? 'text-emerald-400' : 'text-rose-500'" x-text="hotel.ac_rooms_available"></span>
+              <span class="text-xs font-bold text-slate-400" x-text="'/ ' + hotel.ac_rooms_total + ' खाली'"></span>
+            </div>
           </div>
-          <p class="text-xs mt-1 font-semibold" :class="hotel.available_rooms > 0 ? 'text-emerald-300' : 'text-rose-400'" x-text="hotel.available_rooms > 0 ? 'बुकिंग के लिए उपलब्ध' : 'हाउसफुल (Sold Out)'"></p>
+
+          <div class="grid grid-cols-2 gap-2">
+            <button @click="changeAcRooms(-1)" :disabled="hotel.ac_rooms_available <= 0 || updating" class="bg-slate-700 active:bg-rose-600 text-white font-bold py-3 rounded-xl text-sm flex items-center justify-center gap-1">
+              <span>− 1 घटाएँ</span>
+            </button>
+            <button @click="changeAcRooms(1)" :disabled="hotel.ac_rooms_available >= hotel.ac_rooms_total || updating" class="bg-sky-600 active:bg-sky-700 text-white font-bold py-3 rounded-xl text-sm flex items-center justify-center gap-1">
+              <span>+ 1 बढ़ाएँ</span>
+            </button>
+          </div>
+
+          <!-- AC रेट अपडेट -->
+          <div class="pt-2 border-t border-slate-700/60 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-2">
+              <span class="text-xs text-slate-400">किराया: ₹</span>
+              <input type="number" x-model="hotel.ac_price" class="bg-slate-900 border border-slate-700 text-white font-bold rounded-lg px-2.5 py-1 text-xs w-24 outline-none focus:border-sky-400">
+            </div>
+            <button @click="updateAcPrice()" :disabled="updating" class="bg-sky-500 active:bg-sky-600 text-slate-950 font-bold px-3 py-1.5 rounded-lg text-xs">
+              AC रेट बदलें
+            </button>
+          </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-3">
-          <button @click="changeRooms(-1)" :disabled="hotel.available_rooms <= 0 || updating" class="bg-slate-700 active:bg-rose-600 border border-slate-600 text-white font-extrabold py-5 rounded-2xl text-2xl transition disabled:opacity-40 flex items-center justify-center gap-2">
-            <span>−</span> <span class="text-sm font-bold">1 कमरा घटाएँ</span>
-          </button>
-          <button @click="changeRooms(1)" :disabled="hotel.available_rooms >= hotel.total_rooms || updating" class="bg-emerald-600 active:bg-emerald-700 text-white font-extrabold py-5 rounded-2xl text-2xl transition disabled:opacity-40 flex items-center justify-center gap-2 shadow-lg shadow-emerald-900/30">
-            <span>+</span> <span class="text-sm font-bold">1 कमरा बढ़ाएँ</span>
-          </button>
+        <!-- 🌀 2. नॉन-AC कमरा कार्ड -->
+        <div class="bg-slate-800 border border-slate-700 p-4 rounded-3xl shadow-lg space-y-3">
+          <div class="flex justify-between items-center">
+            <span class="text-xs font-black text-amber-400 flex items-center gap-1.5">
+              <span>🌀</span> नॉन-AC कमरे
+            </span>
+            <div class="flex items-center gap-1.5">
+              <span class="text-2xl font-black font-mono" :class="hotel.non_ac_rooms_available > 0 ? 'text-emerald-400' : 'text-rose-500'" x-text="hotel.non_ac_rooms_available"></span>
+              <span class="text-xs font-bold text-slate-400" x-text="'/ ' + hotel.non_ac_rooms_total + ' खाली'"></span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <button @click="changeNonAcRooms(-1)" :disabled="hotel.non_ac_rooms_available <= 0 || updating" class="bg-slate-700 active:bg-rose-600 text-white font-bold py-3 rounded-xl text-sm flex items-center justify-center gap-1">
+              <span>− 1 घटाएँ</span>
+            </button>
+            <button @click="changeNonAcRooms(1)" :disabled="hotel.non_ac_rooms_available >= hotel.non_ac_rooms_total || updating" class="bg-amber-500 active:bg-amber-600 text-slate-950 font-bold py-3 rounded-xl text-sm flex items-center justify-center gap-1">
+              <span>+ 1 बढ़ाएँ</span>
+            </button>
+          </div>
+
+          <!-- नॉन-AC रेट अपडेट -->
+          <div class="pt-2 border-t border-slate-700/60 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-2">
+              <span class="text-xs text-slate-400">किराया: ₹</span>
+              <input type="number" x-model="hotel.non_ac_price" class="bg-slate-900 border border-slate-700 text-white font-bold rounded-lg px-2.5 py-1 text-xs w-24 outline-none focus:border-amber-400">
+            </div>
+            <button @click="updateNonAcPrice()" :disabled="updating" class="bg-amber-400 active:bg-amber-500 text-slate-950 font-bold px-3 py-1.5 rounded-lg text-xs">
+              नॉन-AC रेट बदलें
+            </button>
+          </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-700">
-          <button @click="setExactRooms(0)" :disabled="updating" class="bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs font-bold py-2 rounded-xl">
-            🚫 हाउसफुल (0)
-          </button>
-          <button @click="setExactRooms(hotel.total_rooms)" :disabled="updating" class="bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-bold py-2 rounded-xl">
-            🔄 सभी खाली (<span x-text="hotel.total_rooms"></span>)
-          </button>
-        </div>
       </div>
     </template>
 
@@ -176,18 +248,7 @@
       </div>
     </template>
 
-    <!-- किराया कार्ड -->
-    <div class="bg-slate-800/90 border border-slate-700 p-4 rounded-2xl flex items-center justify-between gap-4">
-      <div>
-        <label class="text-[11px] font-bold text-slate-400 block" x-text="hotel.category === 'restaurant' ? 'शुरुआती थाली दर (₹)' : 'कमरा किराया (₹)'"></label>
-        <input type="number" x-model="hotel.starting_price" class="bg-slate-900 border border-slate-700 text-white font-bold rounded-xl px-3 py-2 text-xs mt-1 w-32 outline-none focus:border-amber-400">
-      </div>
-      <button @click="updatePrice()" :disabled="updating" class="bg-amber-400 active:bg-amber-500 text-slate-950 text-xs font-extrabold px-4 py-2.5 rounded-xl shadow mt-4">
-        रेट अपडेट करें
-      </button>
-    </div>
-
-    <div class="text-center pt-1">
+    <div class="text-center pt-2">
       <a :href="'https://govindaala.github.io/Expressway_stay/Index.html'" target="_blank" class="text-xs text-indigo-400 hover:underline inline-flex items-center gap-1 font-semibold">
         👁️ यात्री स्क्रीन पर लाइव देखें ➔
       </a>
@@ -212,8 +273,17 @@
         updating: false,
         detectingGps: false,
         submitting: false,
-        reg: { category: 'hotel', name: '', city: '', loginId: '', pin: '', phone: '', totalRooms: 10, price: 1500, lat: null, lon: null },
-        hotel: { login_id: '', category: 'hotel', name: '', city: '', total_rooms: 10, available_rooms: 0, starting_price: 1500 },
+        reg: {
+          category: 'hotel', name: '', city: '', loginId: '', pin: '', phone: '', price: 150,
+          ac_rooms_total: 5, ac_price: 2000, non_ac_rooms_total: 10, non_ac_price: 1200,
+          lat: null, lon: null
+        },
+        hotel: {
+          login_id: '', category: 'hotel', name: '', city: '',
+          ac_rooms_total: 0, ac_rooms_available: 0, ac_price: 0,
+          non_ac_rooms_total: 0, non_ac_rooms_available: 0, non_ac_price: 0,
+          available_rooms: 0, starting_price: 0
+        },
 
         init() {
           const saved = localStorage.getItem('stay_owner_hotel');
@@ -240,16 +310,16 @@
                 const data = await res.json();
                 const locality = data.locality || data.city || '';
                 const district = data.localityInfo?.administrative?.[2]?.name || data.principalSubdivision || '';
-                this.reg.city = (locality && district && locality !== district) ? `${locality},${district}` : (locality || district || `${this.reg.lat.toFixed(4)},${this.reg.lon.toFixed(4)}`);
+                this.reg.city = (locality && district && locality !== district) ? `${locality}, ${district}` : (locality || district || `${this.reg.lat.toFixed(4)}, ${this.reg.lon.toFixed(4)}`);
               } catch (e) {
-                this.reg.city = `${this.reg.lat.toFixed(4)},${this.reg.lon.toFixed(4)}`;
+                this.reg.city = `${this.reg.lat.toFixed(4)}, ${this.reg.lon.toFixed(4)}`;
               } finally {
                 this.detectingGps = false;
               }
             },
             () => {
               this.detectingGps = false;
-              alert('GPS अनुमति नहीं मिली। शहर का नाम हाथ से लिखें।');
+              alert('GPS सिग्नल नहीं मिला। शहर का नाम हाथ से लिखें।');
             },
             { enableHighAccuracy: false, timeout: 15000, maximumAge: 60000 }
           );
@@ -296,18 +366,23 @@
           const cleanPin = this.reg.pin.trim().replace(/'/g, "''");
           const cleanPhone = this.reg.phone.trim().replace(/'/g, "''");
           const cat = this.reg.category || 'hotel';
-          const rooms = Number(this.reg.totalRooms) || (cat === 'restaurant' ? 1 : 10);
-          const price = Number(this.reg.price) || (cat === 'restaurant' ? 150 : 1500);
+
+          const acTot = Number(this.reg.ac_rooms_total) || 0;
+          const acPr = Number(this.reg.ac_price) || 0;
+          const nonAcTot = Number(this.reg.non_ac_rooms_total) || 0;
+          const nonAcPr = Number(this.reg.non_ac_price) || 0;
+
+          const totRooms = acTot + nonAcTot;
+          const startPrice = cat === 'restaurant' ? (Number(this.reg.price) || 150) : (Math.min(acPr || 9999, nonAcPr || 9999));
           const latVal = this.reg.lat !== null ? this.reg.lat : 'NULL';
           const lonVal = this.reg.lon !== null ? this.reg.lon : 'NULL';
 
-          // is_active = 1 (तुरंत लाइव)
-          const sql = `INSERT INTO hotels (login_id, pin, name, city, phone, total_rooms, available_rooms, starting_price, is_active, category, lat, lon)
-                       VALUES ('${cleanId}', '${cleanPin}', '${cleanName}', '${cleanCity}', '${cleanPhone}', ${rooms},${rooms}, ${price}, 1, '${cat}', ${latVal},${lonVal})`;
+          const sql = `INSERT INTO hotels (login_id, pin, name, city, phone, total_rooms, available_rooms, starting_price, is_active, category, lat, lon, ac_rooms_total, ac_rooms_available, ac_price, non_ac_rooms_total, non_ac_rooms_available, non_ac_price)
+                       VALUES ('${cleanId}', '${cleanPin}', '${cleanName}', '${cleanCity}', '${cleanPhone}', ${totRooms}, ${totRooms}, ${startPrice}, 1, '${cat}', ${latVal}, ${lonVal}, ${acTot}, ${acTot}, ${acPr}, ${nonAcTot}, ${nonAcTot}, ${nonAcPr})`;
 
           try {
             await this.executeTurso(sql);
-            alert('🎉 आपका होटल/रेस्टोरेंट तुरंत लाइव हो गया है!\n\nअब आप सीधे अपनी आईडी और पिन से लॉगिन कर सकते हैं।');
+            alert('🎉 होटल/रेस्टोरेंट तुरंत लाइव हो गया है!');
             this.mode = 'login';
             this.loginId = this.reg.loginId;
             this.loginPin = this.reg.pin;
@@ -326,14 +401,8 @@
             const rows = await this.executeTurso(`SELECT * FROM hotels WHERE login_id = '${this.loginId.trim()}' AND pin = '${this.loginPin.trim()}' LIMIT 1`);
             if (rows && rows.length > 0) {
               const h = rows[0];
-              if (Number(h.is_active) === 0) {
-                return alert('⚠️ आपका खाता एडमिन द्वारा ब्लॉक कर दिया गया है!');
-              }
-              this.hotel = h;
-              this.hotel.available_rooms = Number(h.available_rooms);
-              this.hotel.total_rooms = Number(h.total_rooms);
-              this.hotel.starting_price = Number(h.starting_price);
-              this.hotel.category = h.category || 'hotel';
+              if (Number(h.is_active) === 0) return alert('⚠️ आपका खाता ब्लॉक है!');
+              this.hotel = this.formatHotel(h);
               this.isLoggedIn = true;
               localStorage.setItem('stay_owner_hotel', JSON.stringify(this.hotel));
             } else {
@@ -346,51 +415,72 @@
           }
         },
 
+        formatHotel(h) {
+          return {
+            ...h,
+            ac_rooms_total: Number(h.ac_rooms_total) || 0,
+            ac_rooms_available: Number(h.ac_rooms_available) || 0,
+            ac_price: Number(h.ac_price) || 0,
+            non_ac_rooms_total: Number(h.non_ac_rooms_total) || 0,
+            non_ac_rooms_available: Number(h.non_ac_rooms_available) || 0,
+            non_ac_price: Number(h.non_ac_price) || 0,
+            available_rooms: Number(h.available_rooms) || 0,
+            category: h.category || 'hotel'
+          };
+        },
+
         async refreshData() {
           try {
             const rows = await this.executeTurso(`SELECT * FROM hotels WHERE login_id = '${this.hotel.login_id}' LIMIT 1`);
             if (rows && rows.length > 0) {
-              this.hotel.available_rooms = Number(rows[0].available_rooms);
-              this.hotel.total_rooms = Number(rows[0].total_rooms);
-              this.hotel.starting_price = Number(rows[0].starting_price);
-              this.hotel.category = rows[0].category || 'hotel';
+              this.hotel = this.formatHotel(rows[0]);
               localStorage.setItem('stay_owner_hotel', JSON.stringify(this.hotel));
             }
           } catch (e) {}
         },
 
-        async changeRooms(delta) {
-          const next = Number(this.hotel.available_rooms) + delta;
-          if (next < 0 || next > Number(this.hotel.total_rooms)) return;
-          await this.setExactRooms(next);
-        },
-
-        async setExactRooms(count) {
+        async changeAcRooms(delta) {
+          const next = this.hotel.ac_rooms_available + delta;
+          if (next < 0 || next > this.hotel.ac_rooms_total) return;
+          this.hotel.ac_rooms_available = next;
           this.updating = true;
-          const prev = this.hotel.available_rooms;
-          this.hotel.available_rooms = count;
           try {
-            await this.executeTurso(`UPDATE hotels SET available_rooms = ${count} WHERE login_id = '${this.hotel.login_id}'`);
+            await this.executeTurso(`UPDATE hotels SET ac_rooms_available = ${next}, available_rooms = ${next + this.hotel.non_ac_rooms_available} WHERE login_id = '${this.hotel.login_id}'`);
             localStorage.setItem('stay_owner_hotel', JSON.stringify(this.hotel));
-          } catch (e) {
-            this.hotel.available_rooms = prev;
-            alert('अपडेट नहीं हुआ: ' + e.message);
-          } finally {
-            this.updating = false;
-          }
+          } finally { this.updating = false; }
         },
 
-        async updatePrice() {
-          const p = Number(this.hotel.starting_price);
+        async changeNonAcRooms(delta) {
+          const next = this.hotel.non_ac_rooms_available + delta;
+          if (next < 0 || next > this.hotel.non_ac_rooms_total) return;
+          this.hotel.non_ac_rooms_available = next;
+          this.updating = true;
+          try {
+            await this.executeTurso(`UPDATE hotels SET non_ac_rooms_available = ${next}, available_rooms = ${this.hotel.ac_rooms_available + next} WHERE login_id = '${this.hotel.login_id}'`);
+            localStorage.setItem('stay_owner_hotel', JSON.stringify(this.hotel));
+          } finally { this.updating = false; }
+        },
+
+        async updateAcPrice() {
+          const p = Number(this.hotel.ac_price);
           if (!p || p < 0) return alert('मान्य रकम लिखें');
           this.updating = true;
           try {
-            await this.executeTurso(`UPDATE hotels SET starting_price = ${p} WHERE login_id = '${this.hotel.login_id}'`);
+            await this.executeTurso(`UPDATE hotels SET ac_price = ${p} WHERE login_id = '${this.hotel.login_id}'`);
             localStorage.setItem('stay_owner_hotel', JSON.stringify(this.hotel));
-            alert('दर अपडेट हो गई!');
-          } finally {
-            this.updating = false;
-          }
+            alert('AC कमरा रेट अपडेट हो गया!');
+          } finally { this.updating = false; }
+        },
+
+        async updateNonAcPrice() {
+          const p = Number(this.hotel.non_ac_price);
+          if (!p || p < 0) return alert('मान्य रकम लिखें');
+          this.updating = true;
+          try {
+            await this.executeTurso(`UPDATE hotels SET non_ac_price = ${p} WHERE login_id = '${this.hotel.login_id}'`);
+            localStorage.setItem('stay_owner_hotel', JSON.stringify(this.hotel));
+            alert('नॉन-AC कमरा रेट अपडेट हो गया!');
+          } finally { this.updating = false; }
         },
 
         logout() {
