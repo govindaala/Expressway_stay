@@ -36,9 +36,9 @@
         <button @click="auth = false" class="text-xs bg-slate-800 text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700 font-semibold">लॉगआउट</button>
       </header>
 
-      <!-- 1. नया होटल रजिस्ट्रेशन फॉर्म -->
+      <!-- नया होटल रजिस्ट्रेशन फॉर्म -->
       <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
-        <h2 class="font-extrabold text-sm text-slate-900 border-b pb-2">🏨 नया होटल रजिस्टर करें (GPS लोकेशन सपोर्ट)</h2>
+        <h2 class="font-extrabold text-sm text-slate-900 border-b pb-2">🏨 नया होटल रजिस्टर करें (लाइव GPS सपोर्ट)</h2>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
@@ -46,15 +46,19 @@
             <input type="text" x-model="form.name" placeholder="उदा. हाईवे किंग रिजॉर्ट" class="w-full border border-slate-300 rounded-xl p-2.5 text-xs mt-1">
           </div>
 
+          <!-- GPS ऑटो-डिटेक्ट लोकेशन फ़ील्ड -->
           <div>
             <div class="flex justify-between items-center">
               <label class="text-[11px] font-bold text-slate-600">लोकेशन / शहर *</label>
-              <button type="button" @click="detectCurrentLocation()" :disabled="detectingLocation" class="text-[10px] bg-indigo-50 active:bg-indigo-100 text-indigo-700 border border-indigo-200 px-2 py-0.5 rounded font-bold flex items-center gap-1">
-                <span x-show="!detectingLocation">📍 ऑटो डिटेक्ट GPS</span>
-                <span x-show="detectingLocation">खोज रहा है... ⏳</span>
+              <button type="button" @click="detectCurrentLocation()" :disabled="detectingLocation" class="text-[10px] bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white px-2.5 py-1 rounded-lg font-bold flex items-center gap-1 shadow-sm transition">
+                <span x-show="!detectingLocation">📍 ऑटो GPS लोकेशन</span>
+                <span x-show="detectingLocation" class="flex items-center gap-1">
+                  <span class="w-2.5 h-2.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                  खोज रहा है...
+                </span>
               </button>
             </div>
-            <input type="text" x-model="form.city" placeholder="GPS बटन दबाएँ या शहर लिखें" class="w-full border border-slate-300 rounded-xl p-2.5 text-xs mt-1 font-semibold">
+            <input type="text" x-model="form.city" placeholder="GPS बटन दबाएँ या शहर का नाम लिखें" class="w-full border border-slate-300 rounded-xl p-2.5 text-xs mt-1 font-semibold">
           </div>
 
           <div>
@@ -85,7 +89,7 @@
         </button>
       </div>
 
-      <!-- 2. रजिस्टर्ड होटल और क्रेडेंशियल लिस्ट -->
+      <!-- रजिस्टर्ड होटल लिस्ट -->
       <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
         <div class="flex justify-between items-center mb-3">
           <div class="flex items-center gap-2">
@@ -99,7 +103,7 @@
           <table class="w-full text-left text-xs">
             <thead class="bg-slate-50 text-slate-600 border-b">
               <tr>
-                <th class="p-2.5">होटल / GPS लोकेशन</th>
+                <th class="p-2.5">होटल / लोकेशन</th>
                 <th class="p-2.5">लॉगिन आईडी</th>
                 <th class="p-2.5">पिन</th>
                 <th class="p-2.5">कमरे</th>
@@ -191,32 +195,49 @@
           }
         },
 
+        // अपग्रेडेड और तेज़ GPS डिटेक्शन
         detectCurrentLocation() {
           if (!navigator.geolocation) {
-            alert('GPS सपोर्ट नहीं मिला!');
+            alert('आपके ब्राउज़र में GPS सपोर्ट उपलब्ध नहीं है!');
             return;
           }
           this.detectingLocation = true;
+
           navigator.geolocation.getCurrentPosition(
             async (pos) => {
               const lat = pos.coords.latitude;
               const lon = pos.coords.longitude;
               try {
-                const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
+                // क्लाइंट-साइड फ्रेंडली BigDataCloud API (Zero CORS Error)
+                const apiUrl = `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`;
+                const res = await fetch(apiUrl);
                 const data = await res.json();
-                const addr = data.address;
-                this.form.city = addr.city || addr.town || addr.village || addr.state_district || addr.state || `${lat.toFixed(3)}, ${lon.toFixed(3)}`;
+
+                const locality = data.locality || data.city || data.principalSubdivision || '';
+                const district = data.localityInfo?.administrative?.[2]?.name || data.principalSubdivision || '';
+                
+                if (locality && district && locality !== district) {
+                  this.form.city = `${locality}, ${district}`;
+                } else {
+                  this.form.city = locality || district || `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+                }
               } catch (e) {
                 this.form.city = `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
               } finally {
                 this.detectingLocation = false;
               }
             },
-            () => {
+            (err) => {
               this.detectingLocation = false;
-              alert('GPS सिग्नल या अनुमति नहीं मिली। कृपया हाथ से लिखें।');
+              if (err.code === 1) {
+                alert('कृपया ब्राउज़र में लोकेशन (GPS Permission) को Allow करें!');
+              } else if (err.code === 2) {
+                alert('GPS लोकेशन प्राप्त नहीं हो सकी। फोन का Location ऑन करें।');
+              } else {
+                alert('लोकेशन टाइमआउट! कृपया शहर का नाम हाथ से दर्ज करें।');
+              }
             },
-            { enableHighAccuracy: true, timeout: 8000 }
+            { enableHighAccuracy: false, timeout: 15000, maximumAge: 60000 }
           );
         },
 
