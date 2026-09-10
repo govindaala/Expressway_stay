@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Expressway Stay | Delhi-Mumbai Expressway</title>
+  <title>Expressway Stay & Food | Delhi–Mumbai Expressway</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
   <style>
     body { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
     [x-cloak] { display: none !important; }
@@ -14,110 +14,126 @@
 </head>
 <body class="bg-slate-100 text-slate-900 pb-20" x-data="travellerPortal()" x-init="fetchLiveHotels()" x-cloak>
 
-  <!-- हेडर -->
+  <!-- मुख्य टॉप हेडर -->
   <header class="bg-slate-950 text-white px-4 py-3 flex items-center justify-between text-xs sticky top-0 z-50 border-b border-slate-800 shadow-md">
     <div class="flex items-center gap-2 font-bold tracking-wide">
       <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-      <span>EXPRESSWAY STAY LIVE</span>
+      <span>EXPRESSWAY STAY & FOOD LIVE</span>
     </div>
-    <button @click="fetchLiveHotels()" class="text-[11px] bg-slate-800 active:bg-slate-700 text-slate-300 px-2.5 py-1 rounded-lg border border-slate-700 flex items-center gap-1">
-      🔄 रीफ़्रेश
+    <button @click="fetchLiveHotels()" class="text-[11px] bg-slate-800 active:bg-slate-700 text-slate-300 px-2.5 py-1 rounded-lg border border-slate-700 font-semibold flex items-center gap-1">
+      <span>🔄</span> रीफ़्रेश
     </button>
   </header>
 
-  <main class="max-w-md mx-auto p-4">
-    <!-- मुख्य एक्सप्रेसवे बैनर -->
-    <div class="bg-gradient-to-r from-amber-500 to-amber-600 rounded-2xl p-4 text-slate-950 shadow-md mb-4">
-      <h1 class="text-lg font-black flex items-center gap-2">
+  <main class="max-w-md mx-auto p-4 space-y-4">
+    <!-- एक्सप्रेसवे बैनर -->
+    <div class="bg-gradient-to-r from-amber-500 to-amber-600 rounded-2xl p-4 text-slate-950 shadow-md">
+      <h1 class="text-base font-black flex items-center gap-2">
         <span>🛣️</span> Delhi–Mumbai Expressway
       </h1>
       <p class="text-xs font-semibold text-amber-950 mt-1">
-        नजदीकी होटल, ढाबा और लाइव खाली कमरों की स्थिति
+        लाइव कमरे और रेस्टोरेंट/ढाबा की ताज़ा स्थिति
       </p>
     </div>
 
-    <!-- लोकेशन फ़िल्टर -->
-    <div class="mb-4">
-      <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">एक्सप्रेसवे कट / शहर चुनें:</label>
-      <select x-model="selectedCity" class="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs font-bold text-slate-800 shadow-sm outline-none">
-        <option value="ALL">सभी लोकेशन (All Locations)</option>
-        <option value="Dausa">दौसा (Dausa Exit)</option>
-        <option value="Sawai Madhopur">सवाई माधोपुर (Ranthambore Cut)</option>
-        <option value="Kota">कोटा / मुकुंदरा (Kota Exit)</option>
-        <option value="Ratlam">रतलाम (MP Section)</option>
-        <option value="Vadodara">वडोदरा / भरूच (Gujarat Exit)</option>
-      </select>
+    <!-- 1. होटल बनाम रेस्टोरेंट टैब स्विच -->
+    <div class="grid grid-cols-2 gap-2 bg-slate-200 p-1.5 rounded-2xl">
+      <button @click="activeCategory = 'hotel'" :class="activeCategory === 'hotel' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-700 hover:bg-slate-300/60'" class="py-2.5 rounded-xl font-black text-xs transition flex items-center justify-center gap-1.5">
+        <span>🏨</span> होटल (कमरे / Stay)
+      </button>
+      <button @click="activeCategory = 'restaurant'" :class="activeCategory === 'restaurant' ? 'bg-orange-600 text-white shadow-md' : 'text-slate-700 hover:bg-slate-300/60'" class="py-2.5 rounded-xl font-black text-xs transition flex items-center justify-center gap-1.5">
+        <span>🍽️</span> रेस्टोरेंट / ढाबा (खाना)
+      </button>
+    </div>
+
+    <!-- 2. सर्च बार (एग्जिट ड्रॉपडाउन की जगह) -->
+    <div class="relative">
+      <input type="text" x-model="searchQuery" placeholder="लोकेशन, शहर या नाम खोजें (उदा. दौसा, रतलाम)..." class="w-full bg-white border border-slate-300 rounded-2xl py-3 pl-10 pr-4 text-xs font-semibold placeholder:text-slate-400 outline-none focus:border-indigo-600 shadow-sm">
+      <span class="absolute left-3.5 top-3 text-slate-400 text-sm">🔍</span>
+      <button x-show="searchQuery" @click="searchQuery = ''" class="absolute right-3 top-2.5 text-xs text-slate-400 bg-slate-100 rounded-full w-5 h-5 flex items-center justify-center">✕</button>
     </div>
 
     <!-- लोडिंग इंडिकेटर -->
     <div x-show="loading" class="text-center py-10">
-      <div class="inline-block w-8 h-8 border-4 border-slate-300 border-t-slate-900 rounded-full animate-spin"></div>
-      <p class="text-xs text-slate-500 mt-2 font-medium">Turso डेटाबेस से कनेक्ट हो रहा है...</p>
+      <div class="inline-block w-8 h-8 border-4 border-slate-300 border-t-indigo-600 rounded-full animate-spin"></div>
+      <p class="text-xs text-slate-500 mt-2 font-medium">Turso डेटाबेस से लाइव स्थिति जाँची जा रही है...</p>
     </div>
 
-    <!-- होटल सूची -->
-    <div x-show="!loading" class="space-y-4">
-      <template x-for="hotel in filteredHotels" :key="hotel.id">
-        <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
+    <!-- 3. लाइव लिस्टिंग कार्ड्स -->
+    <div x-show="!loading" class="space-y-3.5">
+      <template x-for="item in filteredList" :key="item.login_id">
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 space-y-3">
+          
           <div class="flex justify-between items-start gap-2">
             <div>
               <div class="flex items-center gap-1.5">
-                <h3 class="font-extrabold text-base text-slate-900" x-text="hotel.name"></h3>
-                <span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-1.5 py-0.5 rounded">✓ Verified</span>
+                <span class="text-base" x-text="item.category === 'restaurant' ? '🍽️' : '🏨'"></span>
+                <h3 class="font-extrabold text-slate-900 text-sm" x-text="item.name"></h3>
               </div>
-              <p class="text-xs text-slate-500 mt-0.5" x-text="'📍 ' + hotel.city + ' कट'"></p>
+              <p class="text-xs text-slate-500 font-medium mt-0.5" x-text="'📍 ' + item.city"></p>
             </div>
             <div class="text-right whitespace-nowrap">
-              <span class="text-[10px] text-slate-400 block font-medium">किराया शुरुआती</span>
-              <span class="text-base font-extrabold text-emerald-600" x-text="'₹' + (hotel.starting_price || 1500)"></span>
-            </div>
-          </div>
-
-          <!-- लाइव रूम उपलब्धता कार्ड -->
-          <div class="mt-3 p-3 rounded-xl border flex items-center justify-between"
-               :class="Number(hotel.available_rooms) > 0 ? 'bg-emerald-50 border-emerald-200' : 'bg-rose-50 border-rose-200'">
-            <div class="flex items-center gap-2">
-              <span class="w-2.5 h-2.5 rounded-full" :class="Number(hotel.available_rooms) > 0 ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'"></span>
-              <span class="text-xs font-extrabold"
-                    :class="Number(hotel.available_rooms) > 0 ? 'text-emerald-900' : 'text-rose-900'"
-                    x-text="Number(hotel.available_rooms) > 0 ? '🟢 ' + hotel.available_rooms + ' कमरे अभी खाली हैं' : '🔴 सभी कमरे भरे हुए हैं'">
+              <span class="text-[10px] text-slate-400 block font-medium">
+                <span x-text="item.category === 'restaurant' ? 'शुरुआती थाली' : 'कमरा किराया'"></span>
               </span>
+              <span class="text-sm font-extrabold text-emerald-600" x-text="'₹' + (item.starting_price || 1500)"></span>
             </div>
-            <span class="text-[10px] font-bold text-slate-400">Turso Live Sync</span>
           </div>
 
-          <!-- क्विक एक्शन बटन -->
-          <div class="grid grid-cols-3 gap-2 mt-4 pt-2 border-t border-slate-100">
-            <a :href="'tel:' + hotel.phone" class="flex items-center justify-center gap-1 bg-slate-900 active:bg-black text-white text-xs font-bold py-2.5 rounded-xl">
-              📞 Call
+          <!-- होटल के लिए: कमरे का स्टेटस -->
+          <template x-if="item.category !== 'restaurant'">
+            <div class="p-2.5 rounded-xl border flex items-center justify-between" :class="Number(item.available_rooms) > 0 ? 'bg-emerald-50 border-emerald-200' : 'bg-rose-50 border-rose-200'">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full" :class="Number(item.available_rooms) > 0 ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'"></span>
+                <span class="text-xs font-bold" :class="Number(item.available_rooms) > 0 ? 'text-emerald-900' : 'text-rose-900'" x-text="Number(item.available_rooms) > 0 ? 'कमरे उपलब्ध हैं' : 'हाउसफुल (Sold Out)'"></span>
+              </div>
+              <span class="text-xs font-mono font-black" :class="Number(item.available_rooms) > 0 ? 'text-emerald-700' : 'text-rose-700'" x-text="item.available_rooms + ' / ' + item.total_rooms + ' खाली'"></span>
+            </div>
+          </template>
+
+          <!-- रेस्टोरेंट के लिए: डाइनिंग स्टेटस -->
+          <template x-if="item.category === 'restaurant'">
+            <div class="p-2.5 rounded-xl border bg-orange-50 border-orange-200 flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-orange-500 animate-pulse"></span>
+                <span class="text-xs font-bold text-orange-900">डाइनिंग व टेकअवे चालू है</span>
+              </div>
+              <span class="text-[11px] font-bold text-orange-700 bg-orange-100 px-2 py-0.5 rounded-md">ताजा भोजन</span>
+            </div>
+          </template>
+
+          <!-- एक्शन बटन्स (कॉल व गूगल मैप्स) -->
+          <div class="grid grid-cols-2 gap-2 pt-1">
+            <a :href="'tel:' + item.phone" class="bg-slate-900 active:bg-slate-800 text-white text-xs font-bold py-2.5 rounded-xl flex items-center justify-center gap-1.5 shadow">
+              <span>📞</span> सीधे कॉल करें
             </a>
-            <a :href="'https://wa.me/91' + hotel.phone + '?text=' + encodeURIComponent('नमस्ते ' + hotel.name + ', एक्सप्रेसवे स्टे पर आपके खाली कमरे दिखे। क्या बुकिंग मिल सकती है?')" target="_blank" class="flex items-center justify-center gap-1 bg-emerald-600 active:bg-emerald-700 text-white text-xs font-bold py-2.5 rounded-xl">
-              💬 WhatsApp
-            </a>
-            <a :href="'https://maps.google.com/?q=' + encodeURIComponent(hotel.name + ' ' + hotel.city)" target="_blank" class="flex items-center justify-center gap-1 bg-blue-600 active:bg-blue-700 text-white text-xs font-bold py-2.5 rounded-xl">
-              📍 Map
+            <a :href="'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(item.name + ' ' + item.city)" target="_blank" class="bg-indigo-50 active:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-bold py-2.5 rounded-xl flex items-center justify-center gap-1.5">
+              <span>🧭</span> मैप नेविगेशन
             </a>
           </div>
+
         </div>
       </template>
 
-      <!-- कोई होटल न मिलने पर -->
-      <div x-show="filteredHotels.length === 0" class="text-center py-10 bg-white rounded-2xl border border-slate-200">
-        <p class="text-xs text-slate-500">इस लोकेशन पर अभी कोई होटल लिस्टेड नहीं है।</p>
+      <!-- खाली परिणाम -->
+      <div x-show="filteredList.length === 0" class="text-center py-12 bg-white rounded-2xl border border-slate-200 p-6">
+        <span class="text-3xl block mb-2">🔍</span>
+        <h4 class="font-bold text-sm text-slate-800">कोई एंट्री नहीं मिली</h4>
+        <p class="text-xs text-slate-400 mt-1">इस कैटेगरी या लोकेशन में अभी कोई लिस्टेड होटल/रेस्टोरेंट नहीं है।</p>
       </div>
     </div>
   </main>
 
   <script>
-    // Turso कॉन्फ़िगरेशन
     const TURSO_PIPELINE_URL = "https://expresswaystay-govindaala.aws-ap-south-1.turso.io/v2/pipeline";
-    const TURSO_AUTH_TOKEN = "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3ODg5OTE1MzIsImlkIjoiMDFhMDg4MzItM2UwMS03NGY5LTk3NTQtYTg4YjBkZTAyMTA1Iiwia2lkIjoiV0JkNlJ2dHFndUYtOHV1R2tnT0xSWWREU0lCaGVOem8xVy1QNXhBWkNVVSIsInJpZCI6ImE5OWVlZTcxLTNkZGItNDMzMi1hZDU5LTQzZmU4NWIwNjBhNiJ9.2igLL_0RTRvj6QJIq7enEUqoKFkx-v0OOpcL4Gc6dFzdYp3nDfaKyp740YD4B1e5cPnpIbHAy4ihec0vEdgcBg"; // <-- यहाँ अपना Create Token वाला कोड पेस्ट करें
+    const TURSO_AUTH_TOKEN = "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3ODg5OTE1MzIsImlkIjoiMDFhMDg4MzItM2UwMS03NGY5LTk3NTQtYTg4YjBkZTAyMTA1Iiwia2lkIjoiV0JkNlJ2dHFndUYtOHV1R2tnT0xSWWREU0lCaGVOem8xVy1QNXhBWkNVVSIsInJpZCI6ImE5OWVlZTcxLTNkZGItNDMzMi1hZDU5LTQzZmU4NWIwNjBhNiJ9.2igLL_0RTRvj6QJIq7enEUqoKFkx-v0OOpcL4Gc6dFzdYp3nDfaKyp740YD4B1e5cPnpIbHAy4ihec0vEdgcBg";
 
     function travellerPortal() {
       return {
-        selectedCity: 'ALL',
         hotels: [],
-        loading: false,
+        loading: true,
+        activeCategory: 'hotel',
+        searchQuery: '',
 
         async fetchLiveHotels() {
           this.loading = true;
@@ -125,7 +141,7 @@
             const res = await fetch(TURSO_PIPELINE_URL, {
               method: "POST",
               headers: {
-                "Authorization": `Bearer ${TURSO_AUTH_TOKEN}`,
+                "Authorization": `Bearer ${TURSO_AUTH_TOKEN.trim()}`,
                 "Content-Type": "application/json"
               },
               body: JSON.stringify({
@@ -135,29 +151,32 @@
                 ]
               })
             });
-
             const data = await res.json();
-            const execRes = data.results[0].response.result;
-            const colNames = execRes.cols.map(c => c.name);
-
-            // Turso के rows को ऑब्जेक्ट में बदलना
-            this.hotels = execRes.rows.map(row => {
-              const obj = {};
-              row.forEach((cell, idx) => {
-                obj[colNames[idx]] = cell.value;
+            if (data.results && data.results[0]?.response?.result) {
+              const execRes = data.results[0].response.result;
+              const cols = (execRes.cols || []).map(c => c.name);
+              this.hotels = (execRes.rows || []).map(row => {
+                const obj = {};
+                row.forEach((cell, idx) => { obj[cols[idx]] = cell.value; });
+                if (!obj.category) obj.category = 'hotel';
+                return obj;
               });
-              return obj;
-            });
-          } catch (err) {
-            console.error("Turso Connection Error:", err);
+            }
+          } catch (e) {
+            console.error(e);
           } finally {
             this.loading = false;
           }
         },
 
-        get filteredHotels() {
-          if (this.selectedCity === 'ALL') return this.hotels;
-          return this.hotels.filter(h => h.city === this.selectedCity);
+        get filteredList() {
+          return this.hotels.filter(item => {
+            const itemCat = item.category || 'hotel';
+            const matchCat = (this.activeCategory === 'restaurant') ? (itemCat === 'restaurant') : (itemCat !== 'restaurant');
+            const q = this.searchQuery.trim().toLowerCase();
+            const matchQuery = !q || (item.name && item.name.toLowerCase().includes(q)) || (item.city && item.city.toLowerCase().includes(q));
+            return matchCat && matchQuery;
+          });
         }
       };
     }
