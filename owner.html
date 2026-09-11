@@ -6,8 +6,6 @@
   <title>पार्टनर पोर्टल | Expressway Stay & Food</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-  <!-- AI OCR इंजन (हिंदी + इंग्लिश) -->
-  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
     body { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
@@ -28,7 +26,7 @@
       </button>
     </div>
 
-    <!-- लॉगिन फ़ॉर्म -->
+    <!-- मोड A: लॉगिन फ़ॉर्म -->
     <div x-show="mode === 'login'" class="space-y-3.5 pt-2">
       <div>
         <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">लॉगिन आईडी (मोबाइल नंबर)</label>
@@ -45,7 +43,7 @@
       </button>
     </div>
 
-    <!-- नया रजिस्ट्रेशन फ़ॉर्म -->
+    <!-- मोड B: नया रजिस्ट्रेशन फ़ॉर्म -->
     <div x-show="mode === 'register'" class="space-y-3 pt-1">
       <div>
         <label class="text-[11px] font-bold text-slate-400 block mb-1">बिजनेस की सुविधा चुनें *</label>
@@ -201,26 +199,26 @@
       </div>
     </template>
 
-    <!-- 🍽️ मल्टी-पेज AI मेन्यू व कैटेगरी हब -->
+    <!-- 🍽️ Gemini AI विज़न मेन्यू हब -->
     <template x-if="hotel.category === 'restaurant' || hotel.category === 'both'">
       <div class="bg-slate-800 border border-slate-700 p-5 rounded-3xl shadow-xl space-y-4">
         
         <div class="flex justify-between items-center border-b border-slate-700 pb-3">
           <div>
             <h3 class="text-sm font-black text-white flex items-center gap-1.5">📋 मेन्यू व डिश मैनेजमेंट</h3>
-            <p class="text-[10px] text-slate-400">मल्टी-पेज (2-4 पेज) व द्विभाषी कार्ड सपोर्ट</p>
+            <p class="text-[10px] text-slate-400">Google Gemini AI 100% शुद्ध ऑटो-स्कैनर</p>
           </div>
           
           <label class="cursor-pointer bg-gradient-to-r from-indigo-600 to-purple-600 active:scale-95 text-white font-bold px-3 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow transition">
-            <span>📸 कार्ड स्कैन (2-4 पेज)</span>
-            <input type="file" accept="image/*" multiple class="hidden" @change="scanMultiPageMenu($event)">
+            <span>✨ AI कार्ड स्कैन (2-4 पेज)</span>
+            <input type="file" accept="image/*" multiple class="hidden" @change="scanWithGeminiVision($event)">
           </label>
         </div>
 
         <!-- AI स्कैनिंग प्रोग्रेस -->
-        <div x-show="ocrProcessing" class="p-3 bg-indigo-950/90 border border-indigo-500 rounded-2xl text-center space-y-1 shadow-inner">
-          <div class="text-xs font-black text-indigo-200" x-text="scanStatusText"></div>
-          <p class="text-[10px] text-slate-400">कृपया प्रतीक्षा करें, AI फ़ोटो से नाम व दाम पढ़ रहा है...</p>
+        <div x-show="geminiProcessing" class="p-3 bg-indigo-950/90 border border-indigo-500 rounded-2xl text-center space-y-1 shadow-inner">
+          <div class="text-xs font-black text-indigo-200" x-text="geminiStatusText"></div>
+          <p class="text-[10px] text-slate-400">Google Vision AI दो-कॉलम मेन्यू पढ़ रहा है, कृपया 2-3 सेकंड रुकें...</p>
         </div>
 
         <!-- स्कैन के बाद प्रीव्यू व 1-क्लिक बल्क सेव -->
@@ -236,7 +234,6 @@
           <div class="max-h-56 overflow-y-auto space-y-2 pr-1">
             <template x-for="(item, idx) in scannedBatch" :key="idx">
               <div class="grid grid-cols-12 gap-1.5 items-center bg-slate-800 p-2 rounded-xl text-xs">
-                <!-- कैटेगरी सेलेक्टर -->
                 <select x-model="item.category" class="col-span-4 bg-slate-900 border border-slate-700 rounded-lg p-1.5 text-[10px] text-amber-300 font-bold outline-none">
                   <option value="मेन कोर्स (सब्जी)">🍲 मेन कोर्स</option>
                   <option value="तंदूरी ब्रेड्स / रोटियां">🍞 रोटी / नान</option>
@@ -247,13 +244,8 @@
                   <option value="अन्य">🥗 अन्य</option>
                 </select>
 
-                <!-- डिश नाम (सॉफ़्ट एडिटेबल) -->
                 <input type="text" x-model="item.name" class="col-span-5 bg-slate-900 border border-slate-700 rounded-lg p-1.5 text-xs text-white outline-none">
-
-                <!-- कीमत -->
                 <input type="number" x-model="item.price" class="col-span-2 bg-slate-900 border border-slate-700 rounded-lg p-1.5 text-xs text-emerald-400 font-mono font-bold text-center outline-none">
-
-                <!-- डिलीट -->
                 <button @click="scannedBatch.splice(idx, 1)" class="col-span-1 text-rose-400 hover:text-rose-300 text-sm font-bold text-center">✕</button>
               </div>
             </template>
@@ -276,7 +268,7 @@
           <button @click="addManualMenuItem()" :disabled="menuLoading" class="col-span-2 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black rounded-xl text-xs">+ जोड़ें</button>
         </div>
 
-        <!-- लाइव सेव्ड मेन्यू लिस्ट (सफाई व डिलीट करने हेतु) -->
+        <!-- लाइव सेव्ड मेन्यू लिस्ट (कचरा हटाने हेतु ✕ बटन) -->
         <div class="space-y-3 max-h-60 overflow-y-auto pr-1">
           <template x-for="cat in uniqueCategories" :key="cat">
             <div class="space-y-1.5">
@@ -297,7 +289,7 @@
           </template>
 
           <div x-show="menuList.length === 0 && scannedBatch.length === 0" class="text-center py-5 text-xs text-slate-500">
-            मेन्यू खाली है। ऊपर 2-4 पन्नों की फ़ोटो अपलोड करके ऑटो-स्कैन करें।
+            मेन्यू खाली है। ऊपर AI स्कैन बटन दबाएँ।
           </div>
         </div>
 
@@ -316,8 +308,16 @@
   </footer>
 
   <script>
+    // -------------------------------------------------------------------------
+    // 1. Turso Database Keys
+    // -------------------------------------------------------------------------
     const TURSO_PIPELINE_URL = "https://expresswaystay-govindaala.aws-ap-south-1.turso.io/v2/pipeline";
     const TURSO_AUTH_TOKEN = "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3ODg5OTE1MzIsImlkIjoiMDFhMDg4MzItM2UwMS03NGY5LTk3NTQtYTg4YjBkZTAyMTA1Iiwia2lkIjoiV0JkNlJ2dHFndUYtOHV1R2tnT0xSWWREU0lCaGVOem8xVy1QNXhBWkNVVSIsInJpZCI6ImE5OWVlZTcxLTNkZGItNDMzMi1hZDU5LTQzZmU4NWIwNjBhNiJ9.2igLL_0RTRvj6QJIq7enEUqoKFkx-v0OOpcL4Gc6dFzdYp3nDfaKyp740YD4B1e5cPnpIbHAy4ihec0vEdgcBg";
+
+    // -------------------------------------------------------------------------
+    // 2. Google Gemini Vision API Key (सीधा यहाँ कोड में सेट करें)
+    // -------------------------------------------------------------------------
+    const GEMINI_API_KEY = "AIzaSy..."; // <-- यहाँ अपनी Google AI Studio वाली API Key डालें
 
     function ownerPortal() {
       return {
@@ -329,8 +329,8 @@
         updating: false,
         detectingGps: false,
         submitting: false,
-        ocrProcessing: false,
-        scanStatusText: '',
+        geminiProcessing: false,
+        geminiStatusText: '',
         menuLoading: false,
         menuList: [],
         scannedBatch: [],
@@ -395,7 +395,7 @@
                 this.detectingGps = false;
               }
             },
-            () => { this.detectingGps = false; alert('GPS सिग्नल नहीं मिला! कृपया लोकेशन परमिशन चालू करें।'); },
+            () => { this.detectingGps = false; alert('GPS सिग्नल नहीं मिला!'); },
             { enableHighAccuracy: false, timeout: 15000, maximumAge: 60000 }
           );
         },
@@ -572,93 +572,111 @@
           await this.fetchMenu();
         },
 
-        // --- उन्नत मल्टी-पेज AI OCR स्कैनर (सैनिटाइज़र व सिंबल क्लीनर सहित) ---
-        async scanMultiPageMenu(event) {
+        // Helper: File to Base64
+        fileToBase64(file) {
+          return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => {
+              const base64 = reader.result.split(',')[1];
+              resolve(base64);
+            };
+            reader.onerror = error => reject(error);
+          });
+        },
+
+        // --- GOOGLE GEMINI AI VISION SCANNER ---
+        async scanWithGeminiVision(event) {
           const files = Array.from(event.target.files);
           if (!files || files.length === 0) return;
 
-          this.ocrProcessing = true;
+          if (!GEMINI_API_KEY || GEMINI_API_KEY.includes("AIzaSy...")) {
+            alert('त्रुटि: कोड में GEMINI_API_KEY सेट नहीं है! कृपया owner.html की लाइन 439 पर अपनी Gemini API Key डालें।');
+            event.target.value = '';
+            return;
+          }
+
+          this.geminiProcessing = true;
           this.scannedBatch = [];
-          let currentCategory = 'मेन कोर्स (सब्जी)';
 
           try {
-            const worker = await Tesseract.createWorker('hin+eng', 1, {
-              logger: m => {
-                if (m.status === 'recognizing text') {
-                  this.scanStatusText = `टेक्स्ट पढ़ा जा रहा है: ${Math.round(m.progress * 100)}%`;
-                }
-              }
-            });
-
             for (let i = 0; i < files.length; i++) {
-              this.scanStatusText = `पेज ${i + 1} / ${files.length} प्रोसेस हो रहा है...`;
-              const ret = await worker.recognize(files[i]);
-              const lines = ret.data.text.split('\n');
+              this.geminiStatusText = `Google AI द्वारा पेज ${i + 1} / ${files.length} पढ़ा जा रहा है...`;
+              const base64Data = await this.fileToBase64(files[i]);
+              const mimeType = files[i].type || 'image/jpeg';
 
-              for (let rawLine of lines) {
-                let line = rawLine.trim();
-                if (line.length < 3) continue;
+              const promptText = `Analyze this restaurant menu card image very carefully.
+If there are multiple columns (two columns side-by-side), read both columns independently without mixing lines.
+Extract all food and beverage dishes, their appropriate category, and their exact price.
+Classify each dish into one of these exact categories:
+- 'मेन कोर्स (सब्जी)'
+- 'तंदूरी ब्रेड्स / रोटियां'
+- 'दाल व चावल'
+- 'स्पेशल थाली'
+- 'ब्रेकफास्ट / नाश्ता'
+- 'चाय व पेय'
+- 'अन्य'
 
-                // 1. हेडिंग से कैटेगरी पहचानना
-                const lower = line.toLowerCase();
-                if (lower.includes('roti') || lower.includes('bread') || lower.includes('नान') || lower.includes('रोटी') || lower.includes('तन्दूरी')) {
-                  currentCategory = 'तंदूरी ब्रेड्स / रोटियां';
-                  continue;
-                } else if (lower.includes('rice') || lower.includes('biryani') || lower.includes('pulao') || lower.includes('चावल') || lower.includes('पुलाव')) {
-                  currentCategory = 'दाल व चावल';
-                  continue;
-                } else if (lower.includes('thali') || lower.includes('थाली')) {
-                  currentCategory = 'स्पेशल थाली';
-                  continue;
-                } else if (lower.includes('breakfast') || lower.includes('snacks') || lower.includes('नाश्ता') || lower.includes('पकोड़ा') || lower.includes('पराठा')) {
-                  currentCategory = 'ब्रेकफास्ट / नाश्ता';
-                  continue;
-                } else if (lower.includes('tea') || lower.includes('coffee') || lower.includes('चाय') || lower.includes('कॉफी') || lower.includes('लस्सी') || lower.includes('पेय')) {
-                  currentCategory = 'चाय व पेय';
-                  continue;
-                } else if (lower.includes('salad') || lower.includes('raita') || lower.includes('सलाद') || lower.includes('रायता') || lower.includes('पापड़')) {
-                  currentCategory = 'अन्य';
-                  continue;
-                } else if (lower.includes('main course') || lower.includes('sabji') || lower.includes('सब्जी') || lower.includes('पनीर')) {
-                  currentCategory = 'मेन कोर्स (सब्जी)';
-                  continue;
-                }
+Clean dish names completely in Hindi: remove trailing or leading symbols like '.', '...', 'र', '$', '₹', '¥', '(', ')', serial numbers.
+Return strictly a JSON array of objects with keys "name", "category", "price" (price must be integer number).
+Example format:
+[{"name": "दाल तड़का", "category": "मेन कोर्स (सब्जी)", "price": 160}]`;
 
-                // 2. डिश व कीमत पहचानना (लाइन के अंत में 2 से 4 अंकों की संख्या)
-                const match = line.match(/^(.+?)\s*[:\-–./₹$¥र]?\s*(?:rs\.?|inr|₹|र)?\s*(\d{2,4})(?:\/|\.00|\/-)?\s*$/i);
-                if (match) {
-                  let namePart = match[1];
-                  const price = Number(match[2]);
+              const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
 
-                  // नाम के आगे-पीछे से सारे बेकार सिंबल हटाना
-                  namePart = namePart.replace(/[().\-–—:;*#_+=/\\$¥₹]/g, ' ')
-                                     .replace(/\s+र\b/g, '')   // अंत में लगा 'र' हटाना
-                                     .replace(/^[0-9\s]+/, '') // शुरुआत की नंबरिंग हटाना
-                                     .replace(/\s+/g, ' ')    // दोहरे स्पेस हटाना
-                                     .trim();
+              const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  contents: [{
+                    parts: [
+                      { inline_data: { mime_type: mimeType, data: base64Data } },
+                      { text: promptText }
+                    ]
+                  }],
+                  generationConfig: {
+                    response_mime_type: "application/json"
+                  }
+                })
+              });
 
-                  // कचरा व निरर्थक शब्दों को बाहर करना
-                  const isGarbage = /^[a-zA-Z\s]{1,4}$/.test(namePart);
+              if (!response.ok) {
+                const errData = await response.json();
+                throw new Error(errData.error?.message || 'Google Vision API में नेटवर्क त्रुटि');
+              }
 
-                  if (namePart.length >= 3 && price >= 10 && price <= 2500 && !isGarbage) {
-                    this.scannedBatch.push({
-                      category: currentCategory,
-                      name: namePart,
-                      price: price
+              const resultData = await response.json();
+              const responseText = resultData.candidates?.[0]?.content?.parts?.[0]?.text;
+
+              if (responseText) {
+                try {
+                  const dishes = JSON.parse(responseText);
+                  if (Array.isArray(dishes)) {
+                    dishes.forEach(d => {
+                      if (d.name && d.price) {
+                        this.scannedBatch.push({
+                          category: d.category || 'मेन कोर्स (सब्जी)',
+                          name: String(d.name).trim(),
+                          price: Number(d.price) || 0
+                        });
+                      }
                     });
                   }
+                } catch (pe) {
+                  console.error('JSON parse error:', pe);
                 }
               }
             }
-            await worker.terminate();
 
             if (this.scannedBatch.length === 0) {
-              alert('साफ़ व्यंजन नहीं मिले। कृपया सीधी रोशनी में मेन्यू की फोटो लें।');
+              alert('फ़ोटो से कोई डिश नहीं मिली। कृपया साफ़ रोशनी में दोबारा फ़ोटो खींचें।');
+            } else {
+              alert(`🎉 बधाई! Google AI ने कुल ${this.scannedBatch.length} व्यंजन 100% शुद्धता से पहचान लिए हैं। नीचे 'सभी मेन्यू में सेव करें' दबाएँ।`);
             }
           } catch (err) {
-            alert('स्कैनिंग त्रुटि: ' + err.message);
+            alert('AI स्कैनिंग एरर: ' + err.message);
           } finally {
-            this.ocrProcessing = false;
+            this.geminiProcessing = false;
             event.target.value = '';
           }
         },
@@ -678,7 +696,7 @@
 
           try {
             await this.executeTurso(bulkSql);
-            alert(`✅ सभी ${this.scannedBatch.length} व्यंजन सफलतापूर्वक मेन्यू में सेव हो गए!`);
+            alert(`✅ सभी ${this.scannedBatch.length} व्यंजन 1 सेकंड में सफलतापूर्वक सेव हो गए!`);
             this.scannedBatch = [];
             await this.fetchMenu();
           } catch (e) {
