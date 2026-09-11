@@ -199,14 +199,14 @@
       </div>
     </template>
 
-    <!-- 🍽️ Gemini AI विज़न मेन्यू हब -->
+    <!-- 🍽️ AI विज़न मेन्यू हब -->
     <template x-if="hotel.category === 'restaurant' || hotel.category === 'both'">
       <div class="bg-slate-800 border border-slate-700 p-5 rounded-3xl shadow-xl space-y-4">
         
         <div class="flex justify-between items-center border-b border-slate-700 pb-3">
           <div>
             <h3 class="text-sm font-black text-white flex items-center gap-1.5">📋 मेन्यू व डिश मैनेजमेंट</h3>
-            <p class="text-[10px] text-slate-400">Google Gemini AI ऑटो-स्कैनर (मल्टी-मॉडल बैकअप)</p>
+            <p class="text-[10px] text-slate-400">AI ऑटो-स्कैनर (मल्टी-मॉडल फ़ॉलबैक)</p>
           </div>
           
           <label class="cursor-pointer bg-gradient-to-r from-indigo-600 to-purple-600 active:scale-95 text-white font-bold px-3 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow transition">
@@ -218,10 +218,10 @@
         <!-- AI स्कैनिंग प्रोग्रेस -->
         <div x-show="geminiProcessing" class="p-3 bg-indigo-950/90 border border-indigo-500 rounded-2xl text-center space-y-1 shadow-inner">
           <div class="text-xs font-black text-indigo-200" x-text="geminiStatusText"></div>
-          <p class="text-[10px] text-slate-400">Google Gemini AI दोनों कॉलम पढ़ रहा है, कृपया 2-3 सेकंड रुकें...</p>
+          <p class="text-[10px] text-slate-400">AI मॉडल मेन्यू पढ़ रहा है, कृपया 2-3 सेकंड रुकें...</p>
         </div>
 
-        <!-- स्कैन के बाद प्रीव्यू व 1-क्लिक बल्क सेव -->
+        <!-- स्कैन के बाद प्रीव्यू व बल्क सेव -->
         <div x-show="scannedBatch.length > 0" class="p-3 bg-slate-900 border border-amber-500/60 rounded-2xl space-y-3">
           <div class="flex justify-between items-center">
             <span class="text-xs font-black text-amber-400">✨ AI द्वारा निकाले गए व्यंजन (<span x-text="scannedBatch.length"></span>)</span>
@@ -252,7 +252,7 @@
           </div>
         </div>
 
-        <!-- 1-क्लिक मैनुअल डिश जोड़ना -->
+        <!-- मैनुअल डिश जोड़ना -->
         <div class="grid grid-cols-12 gap-1.5 bg-slate-900 p-2 rounded-2xl border border-slate-700">
           <select x-model="newMenuItem.category" class="col-span-4 bg-slate-800 border border-slate-600 rounded-xl p-1.5 text-[11px] text-amber-300 font-bold outline-none">
             <option value="मेन कोर्स (सब्जी)">🍲 मेन कोर्स</option>
@@ -315,7 +315,7 @@
     const TURSO_AUTH_TOKEN = "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3ODg5OTE1MzIsImlkIjoiMDFhMDg4MzItM2UwMS03NGY5LTk3NTQtYTg4YjBkZTAyMTA1Iiwia2lkIjoiV0JkNlJ2dHFndUYtOHV1R2tnT0xSWWREU0lCaGVOem8xVy1QNXhBWkNVVSIsInJpZCI6ImE5OWVlZTcxLTNkZGItNDMzMi1hZDU5LTQzZmU4NWIwNjBhNiJ9.2igLL_0RTRvj6QJIq7enEUqoKFkx-v0OOpcL4Gc6dFzdYp3nDfaKyp740YD4B1e5cPnpIbHAy4ihec0vEdgcBg";
 
     // -------------------------------------------------------------------------
-    // 2. Google Gemini Vision API Key (GitHub Secret Scanner सुरक्षित)
+    // 2. Google Vision API Key (GitHub Secret Scanner सुरक्षित)
     // -------------------------------------------------------------------------
     const GEMINI_API_KEY = "AQ.Ab8RN6KNAIfo69ytl5tw" + "Y71wgAse9aXQkf2nQt93XYQMddw43A";
 
@@ -584,7 +584,7 @@
           });
         },
 
-        // --- GOOGLE GEMINI AI विज़न स्कैनर (मल्टी-मॉडल ऑटो-बैकअप) ---
+        // --- AI विज़न स्कैनर (मल्टी-मॉडल फ़ॉलबैक और ऑटो-रीट्राय सिस्टम) ---
         async scanWithGeminiVision(event) {
           const files = Array.from(event.target.files);
           if (!files || files.length === 0) return;
@@ -594,7 +594,7 @@
 
           try {
             for (let i = 0; i < files.length; i++) {
-              this.geminiStatusText = `Google AI द्वारा पेज ${i + 1} / ${files.length} पढ़ा जा रहा है...`;
+              this.geminiStatusText = `AI द्वारा पेज ${i + 1} / ${files.length} पढ़ा जा रहा है...`;
               const base64Data = await this.fileToBase64(files[i]);
               const mimeType = files[i].type || 'image/jpeg';
 
@@ -615,47 +615,54 @@ Return strictly a JSON array of objects with keys "name", "category", "price" (p
 Example format:
 [{"name": "दाल तड़का", "category": "मेन कोर्स (सब्जी)", "price": 160}]`;
 
-              // बैकअप मॉडल्स (अगर एक पर हाई लोड हो तो दूसरा तुरंत चलेगा)
-              const candidateModels = ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-flash-latest'];
+              // बैकअप मॉडल्स: 1.5-flash-8b (कभी व्यस्त नहीं रहता) -> 2.0-flash -> 1.5-flash
+              const candidateModels = ['gemini-1.5-flash-8b', 'gemini-2.0-flash', 'gemini-1.5-flash'];
               let resultData = null;
               let lastError = null;
 
               for (const modelName of candidateModels) {
-                try {
-                  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent`;
-                  const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: {
-                      'Content-Type': 'application/json',
-                      'X-goog-api-key': GEMINI_API_KEY.trim()
-                    },
-                    body: JSON.stringify({
-                      contents: [{
-                        parts: [
-                          { inline_data: { mime_type: mimeType, data: base64Data } },
-                          { text: promptText }
-                        ]
-                      }],
-                      generationConfig: {
-                        response_mime_type: "application/json"
-                      }
-                    })
-                  });
+                // प्रत्येक मॉडल को 2 बार ऑटो-रीट्राय करने की सुविधा
+                for (let attempt = 1; attempt <= 2; attempt++) {
+                  try {
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent`;
+                    const response = await fetch(apiUrl, {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        'X-goog-api-key': GEMINI_API_KEY.trim()
+                      },
+                      body: JSON.stringify({
+                        contents: [{
+                          parts: [
+                            { inline_data: { mime_type: mimeType, data: base64Data } },
+                            { text: promptText }
+                          ]
+                        }],
+                        generationConfig: {
+                          response_mime_type: "application/json"
+                        }
+                      })
+                    });
 
-                  if (response.ok) {
-                    resultData = await response.json();
-                    break;
-                  } else {
-                    const errJson = await response.json();
-                    lastError = new Error(errJson.error?.message || 'मॉडल व्यस्त है');
+                    if (response.ok) {
+                      resultData = await response.json();
+                      break;
+                    } else {
+                      const errJson = await response.json();
+                      lastError = new Error(errJson.error?.message || 'मॉडल व्यस्त है');
+                      // अगर लोड का एरर है तो 1.2 सेकंड रुककर पुनः प्रयास करें
+                      await new Promise(r => setTimeout(r, 1200));
+                    }
+                  } catch (e) {
+                    lastError = e;
+                    await new Promise(r => setTimeout(r, 1200));
                   }
-                } catch (e) {
-                  lastError = e;
                 }
+                if (resultData) break;
               }
 
               if (!resultData) {
-                throw lastError || new Error('Google AI सर्वर व्यस्त है, कृपया पुनः प्रयास करें।');
+                throw lastError || new Error('सभी AI सर्वर इस समय व्यस्त हैं, कृपया 1 मिनट बाद पुनः प्रयास करें।');
               }
 
               const responseText = resultData.candidates?.[0]?.content?.parts?.[0]?.text;
@@ -683,7 +690,7 @@ Example format:
             if (this.scannedBatch.length === 0) {
               alert('फ़ोटो से कोई डिश नहीं मिली। कृपया साफ़ रोशनी में दोबारा फ़ोटो खींचें।');
             } else {
-              alert(`🎉 बधाई! Google AI ने कुल ${this.scannedBatch.length} व्यंजन 100% शुद्धता से पहचान लिए हैं। नीचे 'सभी मेन्यू में सेव करें' दबाएँ।`);
+              alert(`🎉 बधाई! AI ने कुल ${this.scannedBatch.length} व्यंजन 100% शुद्धता से पहचान लिए हैं। नीचे 'सभी मेन्यू में सेव करें' दबाएँ।`);
             }
           } catch (err) {
             alert('AI स्कैनिंग एरर: ' + err.message);
@@ -693,7 +700,7 @@ Example format:
           }
         },
 
-        // 1-क्लिक बल्क सेव
+        // बल्क सेव
         async saveScannedBatch() {
           if (this.scannedBatch.length === 0) return;
           this.menuLoading = true;
