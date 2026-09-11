@@ -436,6 +436,7 @@
           this.submitting = true;
 
           const cat = (this.reg.category || 'both').toLowerCase();
+          const GEMINI_API_KEY = "AQ.Ab8RN6IswcKbokgVh2b5TREkqCqTJYFb7xmA0x47Nd73S8ZXUg";
           const fType = (this.reg.food_type || 'veg').toLowerCase();
           const acTot = (cat === 'restaurant') ? 0 : (Number(this.reg.ac_rooms_total) || 0);
           const acPr = (cat === 'restaurant') ? 0 : (Number(this.reg.ac_price) || 0);
