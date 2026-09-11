@@ -14,7 +14,7 @@
 </head>
 <body class="bg-slate-900 min-h-screen text-slate-100 flex flex-col justify-between p-3 sm:p-6" x-data="ownerPortal()" x-init="init()" x-cloak>
 
-  <!-- 1. लॉगिन व रजिस्ट्रेशन बॉक्स -->
+  <!-- 1. लॉगिन व रजिस्ट्रेशन कंटेनर -->
   <div x-show="!isLoggedIn" class="w-full max-w-md mx-auto my-auto bg-slate-800 border border-slate-700 p-5 sm:p-6 rounded-3xl shadow-2xl space-y-4">
     
     <div class="flex bg-slate-900/90 p-1.5 rounded-2xl border border-slate-700 text-xs font-bold">
@@ -268,7 +268,7 @@
           <button @click="addManualMenuItem()" :disabled="menuLoading" class="col-span-2 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black rounded-xl text-xs">+ जोड़ें</button>
         </div>
 
-        <!-- लाइव सेव्ड मेन्यू लिस्ट (कचरा हटाने हेतु ✕ बटन) -->
+        <!-- लाइव सेव्ड मेन्यू लिस्ट -->
         <div class="space-y-3 max-h-60 overflow-y-auto pr-1">
           <template x-for="cat in uniqueCategories" :key="cat">
             <div class="space-y-1.5">
@@ -309,15 +309,15 @@
 
   <script>
     // -------------------------------------------------------------------------
-    // 1. Turso Database Keys
+    // 1. डेटाबेस क्रेडेंशियल्स
     // -------------------------------------------------------------------------
     const TURSO_PIPELINE_URL = "https://expresswaystay-govindaala.aws-ap-south-1.turso.io/v2/pipeline";
     const TURSO_AUTH_TOKEN = "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3ODg5OTE1MzIsImlkIjoiMDFhMDg4MzItM2UwMS03NGY5LTk3NTQtYTg4YjBkZTAyMTA1Iiwia2lkIjoiV0JkNlJ2dHFndUYtOHV1R2tnT0xSWWREU0lCaGVOem8xVy1QNXhBWkNVVSIsInJpZCI6ImE5OWVlZTcxLTNkZGItNDMzMi1hZDU5LTQzZmU4NWIwNjBhNiJ9.2igLL_0RTRvj6QJIq7enEUqoKFkx-v0OOpcL4Gc6dFzdYp3nDfaKyp740YD4B1e5cPnpIbHAy4ihec0vEdgcBg";
 
     // -------------------------------------------------------------------------
-    // 2. Google Gemini Vision API Key (सीधा यहाँ कोड में सेट करें)
+    // 2. आपकी आधिकारिक Google Gemini Vision API Key (सक्रिय)
     // -------------------------------------------------------------------------
-      const GEMINI_API_KEY = "AQ.Ab8RN6IswcKbokgVh2b5TREkqCqTJYFb7xmA0x47Nd73S8ZXUg"; // <-- यहाँ अपनी Google AI Studio वाली API Key डालें
+    const GEMINI_API_KEY = "AQ.Ab8RN6IbOst2ZzMKTpye97PWp_fdZ8TbBwo0gIzXDo5qvjSghA";
 
     function ownerPortal() {
       return {
@@ -436,7 +436,6 @@
           this.submitting = true;
 
           const cat = (this.reg.category || 'both').toLowerCase();
-        
           const fType = (this.reg.food_type || 'veg').toLowerCase();
           const acTot = (cat === 'restaurant') ? 0 : (Number(this.reg.ac_rooms_total) || 0);
           const acPr = (cat === 'restaurant') ? 0 : (Number(this.reg.ac_price) || 0);
@@ -573,7 +572,6 @@
           await this.fetchMenu();
         },
 
-        // Helper: File to Base64
         fileToBase64(file) {
           return new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -586,16 +584,10 @@
           });
         },
 
-        // --- GOOGLE GEMINI AI VISION SCANNER ---
+        // --- GOOGLE GEMINI AI विज़न स्कैनर (ऑफिशियल cURL स्पेसिफिकेशन के अनुसार) ---
         async scanWithGeminiVision(event) {
           const files = Array.from(event.target.files);
           if (!files || files.length === 0) return;
-
-          if (!GEMINI_API_KEY || GEMINI_API_KEY.includes("AIzaSy...")) {
-            alert('त्रुटि: कोड में GEMINI_API_KEY सेट नहीं है! कृपया owner.html की लाइन 439 पर अपनी Gemini API Key डालें।');
-            event.target.value = '';
-            return;
-          }
 
           this.geminiProcessing = true;
           this.scannedBatch = [];
@@ -623,11 +615,15 @@ Return strictly a JSON array of objects with keys "name", "category", "price" (p
 Example format:
 [{"name": "दाल तड़का", "category": "मेन कोर्स (सब्जी)", "price": 160}]`;
 
-              const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+              // आधिकारिक cURL रूट और हेडर
+              const apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent";
 
               const response = await fetch(apiUrl, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                  'Content-Type': 'application/json',
+                  'X-goog-api-key': GEMINI_API_KEY.trim()
+                },
                 body: JSON.stringify({
                   contents: [{
                     parts: [
