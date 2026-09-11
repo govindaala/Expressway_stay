@@ -6,7 +6,7 @@
   <title>पार्टनर पोर्टल | Expressway Stay & Food</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-  <!-- फ़ोटो से मेन्यू पढ़ने के लिए AI OCR इंजन -->
+  <!-- मल्टी-लैंग्वेज AI OCR इंजन (हिंदी + इंग्लिश) -->
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
@@ -16,9 +16,8 @@
 </head>
 <body class="bg-slate-900 min-h-screen text-slate-100 flex flex-col justify-between p-3 sm:p-6" x-data="ownerPortal()" x-init="init()" x-cloak>
 
-  <!-- 1. लॉगिन व रजिस्ट्रेशन बॉक्स -->
+  <!-- 1. लॉगिन व रजिस्ट्रेशन कंटेनर -->
   <div x-show="!isLoggedIn" class="w-full max-w-md mx-auto my-auto bg-slate-800 border border-slate-700 p-5 sm:p-6 rounded-3xl shadow-2xl space-y-4">
-    
     <div class="flex bg-slate-900/90 p-1.5 rounded-2xl border border-slate-700 text-xs font-bold">
       <button @click="mode = 'login'" :class="mode === 'login' ? 'bg-amber-400 text-slate-950 shadow' : 'text-slate-400'" class="w-1/2 py-2.5 rounded-xl transition">
         🔑 लॉगिन करें
@@ -28,82 +27,71 @@
       </button>
     </div>
 
-    <!-- लॉगिन फ़ॉर्म -->
+    <!-- लॉगिन -->
     <div x-show="mode === 'login'" class="space-y-3.5 pt-2">
       <div>
         <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">लॉगिन आईडी (मोबाइल नंबर)</label>
-        <input type="text" x-model="loginId" placeholder="9829012345" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl p-3 text-xs mt-1 outline-none focus:border-amber-400 font-mono">
+        <input type="text" x-model="loginId" placeholder="उदा. 9829012345" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl p-3 text-xs mt-1 outline-none focus:border-amber-400 font-mono">
       </div>
       <div>
         <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">6-डिजिट मास्टर पिन</label>
         <input type="password" maxlength="6" x-model="loginPin" placeholder="••••••" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl p-3 text-sm mt-1 outline-none focus:border-amber-400 font-mono tracking-widest text-center text-lg">
       </div>
-
       <button @click="doLogin()" :disabled="loading" class="w-full bg-amber-400 active:bg-amber-500 text-slate-950 font-extrabold py-3.5 rounded-xl text-xs transition shadow flex items-center justify-center gap-2 mt-2">
         <span x-show="!loading">कंट्रोल डैशबोर्ड खोलें ➔</span>
         <span x-show="loading" class="w-4 h-4 border-2 border-slate-950 border-t-transparent rounded-full animate-spin"></span>
       </button>
     </div>
 
-    <!-- नया रजिस्ट्रेशन फ़ॉर्म -->
+    <!-- रजिस्ट्रेशन -->
     <div x-show="mode === 'register'" class="space-y-3 pt-1">
-      
-      <!-- 1. बिज़नेस कैटेगरी (3 प्रकार) -->
       <div>
         <label class="text-[11px] font-bold text-slate-400 block mb-1">बिजनेस की सुविधा चुनें *</label>
         <div class="grid grid-cols-3 gap-1.5 text-[11px]">
-          <button type="button" @click="reg.category = 'hotel'" :class="reg.category === 'hotel' ? 'bg-indigo-600 text-white border-indigo-500 shadow' : 'bg-slate-900 text-slate-400 border-slate-700'" class="py-2.5 px-1 rounded-xl border font-bold flex flex-col items-center justify-center gap-0.5 transition">
+          <button type="button" @click="reg.category = 'hotel'" :class="reg.category === 'hotel' ? 'bg-indigo-600 text-white border-indigo-500 shadow' : 'bg-slate-900 text-slate-400 border-slate-700'" class="py-2 px-1 rounded-xl border font-bold flex flex-col items-center justify-center gap-0.5">
             <span class="text-base">🏨</span>
             <span>केवल होटल</span>
           </button>
-          <button type="button" @click="reg.category = 'restaurant'" :class="reg.category === 'restaurant' ? 'bg-orange-600 text-white border-orange-500 shadow' : 'bg-slate-900 text-slate-400 border-slate-700'" class="py-2.5 px-1 rounded-xl border font-bold flex flex-col items-center justify-center gap-0.5 transition">
+          <button type="button" @click="reg.category = 'restaurant'" :class="reg.category === 'restaurant' ? 'bg-orange-600 text-white border-orange-500 shadow' : 'bg-slate-900 text-slate-400 border-slate-700'" class="py-2 px-1 rounded-xl border font-bold flex flex-col items-center justify-center gap-0.5">
             <span class="text-base">🍽️</span>
             <span>केवल ढाबा</span>
           </button>
-          <button type="button" @click="reg.category = 'both'" :class="reg.category === 'both' ? 'bg-emerald-600 text-white border-emerald-500 shadow' : 'bg-slate-900 text-slate-400 border-slate-700'" class="py-2.5 px-1 rounded-xl border font-bold flex flex-col items-center justify-center gap-0.5 transition">
+          <button type="button" @click="reg.category = 'both'" :class="reg.category === 'both' ? 'bg-emerald-600 text-white border-emerald-500 shadow' : 'bg-slate-900 text-slate-400 border-slate-700'" class="py-2 px-1 rounded-xl border font-bold flex flex-col items-center justify-center gap-0.5">
             <span class="text-base">🏨🍽️</span>
             <span>होटल + ढाबा</span>
           </button>
         </div>
       </div>
 
-      <!-- 2. भोजन का प्रकार (Veg, Non-Veg, Both) -->
       <div>
         <label class="text-[11px] font-bold text-slate-400 block mb-1">भोजन प्रकार (Food Type) *</label>
         <div class="grid grid-cols-3 gap-1.5 text-[11px]">
-          <button type="button" @click="reg.food_type = 'veg'" :class="reg.food_type === 'veg' ? 'bg-emerald-600 text-white border-emerald-500 shadow' : 'bg-slate-900 text-slate-400 border-slate-700'" class="py-2 px-1 rounded-xl border font-bold flex flex-col items-center justify-center gap-0.5 transition">
-            <span>🟢</span>
-            <span>शुद्ध शाकाहारी</span>
+          <button type="button" @click="reg.food_type = 'veg'" :class="reg.food_type === 'veg' ? 'bg-emerald-600 text-white border-emerald-500 shadow' : 'bg-slate-900 text-slate-400 border-slate-700'" class="py-2 px-1 rounded-xl border font-bold flex flex-col items-center justify-center gap-0.5">
+            <span>🟢 शाकाहारी</span>
           </button>
-          <button type="button" @click="reg.food_type = 'non_veg'" :class="reg.food_type === 'non_veg' ? 'bg-rose-700 text-white border-rose-600 shadow' : 'bg-slate-900 text-slate-400 border-slate-700'" class="py-2 px-1 rounded-xl border font-bold flex flex-col items-center justify-center gap-0.5 transition">
-            <span>🔴</span>
-            <span>नॉन-वेज</span>
+          <button type="button" @click="reg.food_type = 'non_veg'" :class="reg.food_type === 'non_veg' ? 'bg-rose-700 text-white border-rose-600 shadow' : 'bg-slate-900 text-slate-400 border-slate-700'" class="py-2 px-1 rounded-xl border font-bold flex flex-col items-center justify-center gap-0.5">
+            <span>🔴 नॉन-वेज</span>
           </button>
-          <button type="button" @click="reg.food_type = 'both'" :class="reg.food_type === 'both' ? 'bg-amber-600 text-white border-amber-500 shadow' : 'bg-slate-900 text-slate-400 border-slate-700'" class="py-2 px-1 rounded-xl border font-bold flex flex-col items-center justify-center gap-0.5 transition">
-            <span>🟡</span>
-            <span>वेज + नॉनवेज</span>
+          <button type="button" @click="reg.food_type = 'both'" :class="reg.food_type === 'both' ? 'bg-amber-600 text-white border-amber-500 shadow' : 'bg-slate-900 text-slate-400 border-slate-700'" class="py-2 px-1 rounded-xl border font-bold flex flex-col items-center justify-center gap-0.5">
+            <span>🟡 दोनों</span>
           </button>
         </div>
       </div>
 
       <div>
         <label class="text-[11px] font-bold text-slate-400">होटल / ढाबे का नाम *</label>
-        <input type="text" x-model="reg.name" placeholder="उदा. हाईवे किंग" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl p-2.5 text-xs mt-1">
+        <input type="text" x-model="reg.name" placeholder="उदा. होटल हाईवे किंग" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl p-2.5 text-xs mt-1">
       </div>
 
-      <!-- सटीक GPS -->
       <div>
         <div class="flex justify-between items-center">
-          <label class="text-[11px] font-bold text-slate-400">सटीक GPS लोकेशन *</label>
-          <button type="button" @click="detectLocation()" :disabled="detectingGps" class="text-[10px] bg-emerald-600 hover:bg-emerald-700 text-white px-2 py-0.5 rounded font-bold flex items-center gap-1">
+          <label class="text-[11px] font-bold text-slate-400">GPS लोकेशन *</label>
+          <button type="button" @click="detectLocation()" :disabled="detectingGps" class="text-[10px] bg-emerald-600 text-white px-2 py-0.5 rounded font-bold">
             <span x-show="!detectingGps">📍 GPS से भरें</span>
             <span x-show="detectingGps">खोज रहा है... ⏳</span>
           </button>
         </div>
-        <input type="text" x-model="reg.city" placeholder="GPS बटन दबाएँ या शहर लिखें" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl p-2.5 text-xs mt-1">
-        <template x-if="reg.lat && reg.lon">
-          <span class="text-[10px] text-emerald-400 block mt-0.5" x-text="'✓ GPS सुरक्षित: ' + reg.lat.toFixed(4) + ', ' + reg.lon.toFixed(4)"></span>
-        </template>
+        <input type="text" x-model="reg.city" placeholder="शहर / एक्सप्रेसवे कट" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl p-2.5 text-xs mt-1">
       </div>
 
       <div class="grid grid-cols-2 gap-2">
@@ -112,41 +100,39 @@
           <input type="text" x-model="reg.loginId" placeholder="मोबाइल नंबर" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl p-2.5 text-xs mt-1 font-mono">
         </div>
         <div>
-          <label class="text-[11px] font-bold text-slate-400">6-अंक पिन चुनें *</label>
-          <input type="password" maxlength="6" x-model="reg.pin" placeholder="6 अंक" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl p-2.5 text-xs mt-1 font-mono tracking-widest text-center">
+          <label class="text-[11px] font-bold text-slate-400">6-अंक पिन *</label>
+          <input type="password" maxlength="6" x-model="reg.pin" placeholder="6 अंक" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl p-2.5 text-xs mt-1 font-mono text-center tracking-widest">
         </div>
       </div>
 
       <div>
-        <label class="text-[11px] font-bold text-slate-400">कॉलिंग फ़ोन नंबर *</label>
-        <input type="text" x-model="reg.phone" placeholder="यात्री इसी नंबर पर कॉल करेंगे" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl p-2.5 text-xs mt-1">
+        <label class="text-[11px] font-bold text-slate-400">कॉलिंग फ़ोन *</label>
+        <input type="text" x-model="reg.phone" placeholder="फ़ोन नंबर" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl p-2.5 text-xs mt-1">
       </div>
 
-      <!-- कमरों का सेटअप (होटल या दोनों होने पर) -->
       <template x-if="reg.category === 'hotel' || reg.category === 'both'">
         <div class="space-y-2 pt-1">
           <div class="p-2.5 rounded-xl bg-slate-900/80 border border-slate-700 space-y-1">
-            <span class="text-[11px] font-bold text-sky-400">❄️ AC कमरा सेटअप</span>
+            <span class="text-[11px] font-bold text-sky-400">❄️ AC कमरा</span>
             <div class="grid grid-cols-2 gap-2">
-              <input type="number" x-model="reg.ac_rooms_total" placeholder="AC कमरे (5)" class="w-full bg-slate-800 border border-slate-600 text-white rounded-lg p-2 text-xs font-bold">
-              <input type="number" x-model="reg.ac_price" placeholder="किराया ₹ (2000)" class="w-full bg-slate-800 border border-slate-600 text-white rounded-lg p-2 text-xs font-bold">
+              <input type="number" x-model="reg.ac_rooms_total" placeholder="AC कमरे (5)" class="w-full bg-slate-800 border border-slate-600 rounded-lg p-2 text-xs font-bold">
+              <input type="number" x-model="reg.ac_price" placeholder="किराया ₹ (2000)" class="w-full bg-slate-800 border border-slate-600 rounded-lg p-2 text-xs font-bold">
             </div>
           </div>
           <div class="p-2.5 rounded-xl bg-slate-900/80 border border-slate-700 space-y-1">
-            <span class="text-[11px] font-bold text-amber-400">🌀 नॉन-AC कमरा सेटअप</span>
+            <span class="text-[11px] font-bold text-amber-400">🌀 नॉन-AC कमरा</span>
             <div class="grid grid-cols-2 gap-2">
-              <input type="number" x-model="reg.non_ac_rooms_total" placeholder="नॉन-AC (10)" class="w-full bg-slate-800 border border-slate-600 text-white rounded-lg p-2 text-xs font-bold">
-              <input type="number" x-model="reg.non_ac_price" placeholder="किराया ₹ (1200)" class="w-full bg-slate-800 border border-slate-600 text-white rounded-lg p-2 text-xs font-bold">
+              <input type="number" x-model="reg.non_ac_rooms_total" placeholder="नॉन-AC (10)" class="w-full bg-slate-800 border border-slate-600 rounded-lg p-2 text-xs font-bold">
+              <input type="number" x-model="reg.non_ac_price" placeholder="किराया ₹ (1200)" class="w-full bg-slate-800 border border-slate-600 rounded-lg p-2 text-xs font-bold">
             </div>
           </div>
         </div>
       </template>
 
-      <!-- थाली दर (ढाबा या दोनों होने पर) -->
       <template x-if="reg.category === 'restaurant' || reg.category === 'both'">
         <div>
           <label class="text-[11px] font-bold text-slate-400">शुरुआती थाली / भोजन दर (₹) *</label>
-          <input type="number" x-model="reg.price" placeholder="उदा. 150" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl p-2.5 text-xs mt-1">
+          <input type="number" x-model="reg.price" placeholder="150" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-xs mt-1">
         </div>
       </template>
 
@@ -155,7 +141,6 @@
         <span x-show="submitting" class="w-4 h-4 border-2 border-slate-950 border-t-transparent rounded-full animate-spin"></span>
       </button>
     </div>
-
   </div>
 
   <!-- 2. ओनर कंट्रोल डैशबोर्ड -->
@@ -164,108 +149,156 @@
       <div>
         <div class="flex items-center gap-2">
           <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-          <span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full" 
-                :class="hotel.category === 'both' ? 'bg-emerald-950 text-emerald-300 border border-emerald-800' : (hotel.category === 'restaurant' ? 'bg-orange-950 text-orange-400 border border-orange-800' : 'bg-indigo-950 text-indigo-400 border border-indigo-800')" 
-                x-text="hotel.category === 'both' ? '🏨🍽️ होटल + ढाबा' : (hotel.category === 'restaurant' ? '🍽️ ढाबा/रेस्टोरेंट' : '🏨 होटल')"></span>
+          <span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-slate-700 text-slate-300" 
+                x-text="hotel.category === 'both' ? '🏨🍽️ दोनों' : (hotel.category === 'restaurant' ? '🍽️ ढाबा' : '🏨 होटल')"></span>
           <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-700 text-slate-300"
                 x-text="hotel.food_type === 'non_veg' ? '🔴 नॉन-वेज' : (hotel.food_type === 'both' ? '🟡 वेज+नॉनवेज' : '🟢 शाकाहारी')"></span>
         </div>
         <h2 class="text-base font-extrabold text-white mt-1" x-text="hotel.name"></h2>
         <p class="text-xs text-slate-400" x-text="'📍 ' + hotel.city"></p>
       </div>
-      <button @click="logout()" class="text-xs bg-slate-700 active:bg-slate-600 text-slate-300 px-3 py-1.5 rounded-xl font-bold border border-slate-600">
-        लॉगआउट
-      </button>
+      <button @click="logout()" class="text-xs bg-slate-700 active:bg-slate-600 text-slate-300 px-3 py-1.5 rounded-xl font-bold border border-slate-600">लॉगआउट</button>
     </div>
 
-    <!-- कमरा इन्वेंटरी (अगर केवल होटल या दोनों हों) -->
+    <!-- कमरा इन्वेंटरी -->
     <template x-if="hotel.category === 'hotel' || hotel.category === 'both'">
       <div class="space-y-3">
-        <!-- AC कमरा कार्ड -->
         <div class="bg-slate-800 border border-slate-700 p-4 rounded-3xl shadow-lg space-y-3">
           <div class="flex justify-between items-center">
-            <span class="text-xs font-black text-sky-400 flex items-center gap-1.5">❄️ AC कमरे</span>
+            <span class="text-xs font-black text-sky-400">❄️ AC कमरे</span>
             <div class="flex items-center gap-1.5">
               <span class="text-2xl font-black font-mono" :class="hotel.ac_rooms_available > 0 ? 'text-emerald-400' : 'text-rose-500'" x-text="hotel.ac_rooms_available"></span>
               <span class="text-xs font-bold text-slate-400" x-text="'/ ' + hotel.ac_rooms_total + ' खाली'"></span>
             </div>
           </div>
           <div class="grid grid-cols-2 gap-2">
-            <button @click="changeAcRooms(-1)" :disabled="hotel.ac_rooms_available <= 0 || updating" class="bg-slate-700 text-white font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-1">− 1 घटाएँ</button>
-            <button @click="changeAcRooms(1)" :disabled="hotel.ac_rooms_available >= hotel.ac_rooms_total || updating" class="bg-sky-600 text-white font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-1">+ 1 बढ़ाएँ</button>
+            <button @click="changeAcRooms(-1)" :disabled="hotel.ac_rooms_available <= 0 || updating" class="bg-slate-700 text-white font-bold py-2.5 rounded-xl text-xs">− 1 घटाएँ</button>
+            <button @click="changeAcRooms(1)" :disabled="hotel.ac_rooms_available >= hotel.ac_rooms_total || updating" class="bg-sky-600 text-white font-bold py-2.5 rounded-xl text-xs">+ 1 बढ़ाएँ</button>
           </div>
         </div>
 
-        <!-- नॉन-AC कमरा कार्ड -->
         <div class="bg-slate-800 border border-slate-700 p-4 rounded-3xl shadow-lg space-y-3">
           <div class="flex justify-between items-center">
-            <span class="text-xs font-black text-amber-400 flex items-center gap-1.5">🌀 नॉन-AC कमरे</span>
+            <span class="text-xs font-black text-amber-400">🌀 नॉन-AC कमरे</span>
             <div class="flex items-center gap-1.5">
               <span class="text-2xl font-black font-mono" :class="hotel.non_ac_rooms_available > 0 ? 'text-emerald-400' : 'text-rose-500'" x-text="hotel.non_ac_rooms_available"></span>
               <span class="text-xs font-bold text-slate-400" x-text="'/ ' + hotel.non_ac_rooms_total + ' खाली'"></span>
             </div>
           </div>
           <div class="grid grid-cols-2 gap-2">
-            <button @click="changeNonAcRooms(-1)" :disabled="hotel.non_ac_rooms_available <= 0 || updating" class="bg-slate-700 text-white font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-1">− 1 घटाएँ</button>
-            <button @click="changeNonAcRooms(1)" :disabled="hotel.non_ac_rooms_available >= hotel.non_ac_rooms_total || updating" class="bg-amber-500 text-slate-950 font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-1">+ 1 बढ़ाएँ</button>
+            <button @click="changeNonAcRooms(-1)" :disabled="hotel.non_ac_rooms_available <= 0 || updating" class="bg-slate-700 text-white font-bold py-2.5 rounded-xl text-xs">− 1 घटाएँ</button>
+            <button @click="changeNonAcRooms(1)" :disabled="hotel.non_ac_rooms_available >= hotel.non_ac_rooms_total || updating" class="bg-amber-500 text-slate-950 font-bold py-2.5 rounded-xl text-xs">+ 1 बढ़ाएँ</button>
           </div>
         </div>
       </div>
     </template>
 
-    <!-- भोजन व AI मेन्यू मैनेजर (अगर केवल ढाबा या दोनों हों) -->
+    <!-- 🍽️ मल्टी-पेज AI मेन्यू व कैटेगरी हब -->
     <template x-if="hotel.category === 'restaurant' || hotel.category === 'both'">
       <div class="bg-slate-800 border border-slate-700 p-5 rounded-3xl shadow-xl space-y-4">
+        
         <div class="flex justify-between items-center border-b border-slate-700 pb-3">
           <div>
-            <h3 class="text-sm font-black text-white flex items-center gap-1.5">🍽️ मेन्यू व भोजन प्रबंधन</h3>
-            <p class="text-[10px] text-slate-400">यात्रियों को लाइव मेन्यू और रेट दिखेगा</p>
+            <h3 class="text-sm font-black text-white flex items-center gap-1.5">📋 मेन्यू व डिश मैनेजमेंट</h3>
+            <p class="text-[10px] text-slate-400">हिंदी / इंग्लिश / मल्टी-पेज मेन्यू कार्ड सपोर्ट</p>
           </div>
           
-          <!-- AI कार्ड फोटो स्कैनिंग बटन -->
-          <label class="cursor-pointer bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 py-1.5 rounded-xl text-xs flex items-center gap-1.5 shadow">
-            <span>📸 AI कार्ड स्कैन</span>
-            <input type="file" accept="image/*" class="hidden" @change="scanMenuCard($event)">
+          <!-- मल्टी-पेज अपलोड बटन -->
+          <label class="cursor-pointer bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-90 text-white font-bold px-3 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow">
+            <span>📸 कार्ड स्कैन (2-4 पेज)</span>
+            <input type="file" accept="image/*" multiple class="hidden" @change="scanMultiPageMenu($event)">
           </label>
         </div>
 
-        <div x-show="ocrProcessing" class="p-3 bg-indigo-950/60 border border-indigo-700 rounded-xl text-center text-xs text-indigo-300 animate-pulse">
-          ⏳ AI द्वारा फोटो से व्यंजन और रेट पढ़े जा रहे हैं, कृपया 5 सेकंड रुकें...
+        <!-- स्कैनिंग स्टेटस और प्रोग्रेस -->
+        <div x-show="ocrProcessing" class="p-3 bg-indigo-950/80 border border-indigo-600 rounded-xl text-center space-y-1">
+          <div class="text-xs font-bold text-indigo-200" x-text="scanStatusText"></div>
+          <p class="text-[10px] text-slate-400">AI हिंदी व इंग्लिश टेक्स्ट पढ़ रहा है और कैटेगरी बना रहा है...</p>
         </div>
 
-        <!-- मैनुअल व्यंजन इनपुट -->
-        <div class="grid grid-cols-3 gap-2 bg-slate-900 p-2.5 rounded-2xl border border-slate-700">
-          <input type="text" x-model="newMenuItem.name" placeholder="व्यंजन (दाल फ्राई)" class="bg-slate-800 border border-slate-600 text-white rounded-xl px-2.5 py-1.5 text-xs outline-none">
-          <input type="number" x-model="newMenuItem.price" placeholder="रेट ₹ (120)" class="bg-slate-800 border border-slate-600 text-white rounded-xl px-2.5 py-1.5 text-xs outline-none">
-          <button @click="addManualMenuItem()" :disabled="menuLoading" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-extrabold rounded-xl text-xs flex items-center justify-center">
-            + जोड़ें
-          </button>
-        </div>
+        <!-- स्कैन के बाद प्रीव्यू व कन्फर्मेशन बॉक्स -->
+        <div x-show="scannedBatch.length > 0" class="p-3 bg-slate-900 border border-amber-500/50 rounded-2xl space-y-3">
+          <div class="flex justify-between items-center">
+            <span class="text-xs font-black text-amber-400">✨ AI द्वारा निकाले गए व्यंजन (<span x-text="scannedBatch.length"></span>)</span>
+            <button @click="saveScannedBatch()" :disabled="menuLoading" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black px-3 py-1 rounded-lg text-xs shadow">
+              ✓ सभी मेन्यू में सेव करें
+            </button>
+          </div>
 
-        <!-- लाइव मेन्यू लिस्ट -->
-        <div class="space-y-1.5 max-h-52 overflow-y-auto pr-1">
-          <template x-for="item in menuList" :key="item.id">
-            <div class="bg-slate-900/90 border border-slate-700/80 p-2.5 rounded-xl flex items-center justify-between text-xs">
-              <div>
-                <span class="font-bold text-slate-100" x-text="item.item_name"></span>
-                <span class="text-emerald-400 font-mono font-bold ml-1.5" x-text="'₹' + item.price"></span>
+          <div class="max-h-48 overflow-y-auto space-y-2 pr-1">
+            <template x-for="(item, idx) in scannedBatch" :key="idx">
+              <div class="grid grid-cols-12 gap-1.5 items-center bg-slate-800 p-2 rounded-xl text-xs">
+                <!-- कैटेगरी सेलेक्टर -->
+                <select x-model="item.category" class="col-span-4 bg-slate-900 border border-slate-700 rounded-lg p-1.5 text-[10px] text-amber-300 font-bold">
+                  <option value="मेन कोर्स (सब्जी)">🍲 मेन कोर्स (सब्जी)</option>
+                  <option value="तंदूरी ब्रेड्स / रोटियां">🍞 रोटी / नान</option>
+                  <option value="दाल व चावल">🍚 दाल व चावल</option>
+                  <option value="स्पेशल थाली">🍱 स्पेशल थाली</option>
+                  <option value="ब्रेकफास्ट / नाश्ता">☕ नाश्ता / स्नैक्स</option>
+                  <option value="चाय व पेय">🥤 चाय व पेय</option>
+                  <option value="अन्य">🥗 रायता / पापड़ / अन्य</option>
+                </select>
+
+                <!-- डिश नाम -->
+                <input type="text" x-model="item.name" class="col-span-5 bg-slate-900 border border-slate-700 rounded-lg p-1.5 text-xs text-white">
+
+                <!-- कीमत -->
+                <input type="number" x-model="item.price" class="col-span-2 bg-slate-900 border border-slate-700 rounded-lg p-1.5 text-xs text-emerald-400 font-mono font-bold text-center">
+
+                <!-- डिलीट -->
+                <button @click="scannedBatch.splice(idx, 1)" class="col-span-1 text-rose-400 hover:text-rose-300 text-sm font-bold text-center">✕</button>
               </div>
-              <div class="flex items-center gap-2">
-                <button @click="toggleMenuAvailability(item)" class="text-[10px] px-2 py-0.5 rounded font-bold" :class="Number(item.is_available) === 1 ? 'bg-emerald-950 text-emerald-300 border border-emerald-800' : 'bg-rose-950 text-rose-300 border border-rose-800'" x-text="Number(item.is_available) === 1 ? 'चालू' : 'बंद'"></button>
-                <button @click="deleteMenuItem(item.id)" class="text-rose-400 hover:text-rose-300 text-sm">✕</button>
-              </div>
-            </div>
-          </template>
-          <div x-show="menuList.length === 0" class="text-center py-4 text-xs text-slate-500">
-            अभी कोई डिश नहीं जुड़ी है। ऊपर फ़ोटो स्कैन करें या नाम लिखें।
+            </template>
           </div>
         </div>
+
+        <!-- 1-क्लिक मैनुअल एंट्री -->
+        <div class="grid grid-cols-12 gap-1.5 bg-slate-900 p-2 rounded-xl border border-slate-700">
+          <select x-model="newMenuItem.category" class="col-span-4 bg-slate-800 border border-slate-600 rounded-lg p-1.5 text-[11px] text-amber-300 font-bold">
+            <option value="मेन कोर्स (सब्जी)">🍲 मेन कोर्स</option>
+            <option value="तंदूरी ब्रेड्स / रोटियां">🍞 रोटी / नान</option>
+            <option value="दाल व चावल">🍚 दाल व चावल</option>
+            <option value="स्पेशल थाली">🍱 थाली</option>
+            <option value="ब्रेकफास्ट / नाश्ता">☕ नाश्ता</option>
+            <option value="चाय व पेय">🥤 चाय / पेय</option>
+            <option value="अन्य">🥗 अन्य</option>
+          </select>
+          <input type="text" x-model="newMenuItem.name" placeholder="डिश नाम" class="col-span-4 bg-slate-800 border border-slate-600 rounded-lg p-1.5 text-xs text-white">
+          <input type="number" x-model="newMenuItem.price" placeholder="₹" class="col-span-2 bg-slate-800 border border-slate-600 rounded-lg p-1.5 text-xs text-white text-center font-bold">
+          <button @click="addManualMenuItem()" :disabled="menuLoading" class="col-span-2 bg-emerald-500 text-slate-950 font-black rounded-lg text-xs">+ जोड़ें</button>
+        </div>
+
+        <!-- लाइव सेव्ड मेन्यू लिस्ट (कैटेगरी के अनुसार संगठित) -->
+        <div class="space-y-3 max-h-60 overflow-y-auto pr-1">
+          <template x-for="cat in uniqueCategories" :key="cat">
+            <div class="space-y-1.5">
+              <span class="text-[11px] font-black text-amber-400 uppercase tracking-wider block bg-slate-900/60 px-2.5 py-1 rounded-lg border border-slate-700/60" x-text="cat"></span>
+              <template x-for="dish in menuList.filter(m => (m.category || 'मेन कोर्स (सब्जी)') === cat)" :key="dish.id">
+                <div class="bg-slate-900/90 border border-slate-800 p-2 rounded-xl flex items-center justify-between text-xs">
+                  <div>
+                    <span class="font-bold text-slate-200" x-text="dish.item_name"></span>
+                    <span class="text-emerald-400 font-mono font-bold ml-1.5" x-text="'₹' + dish.price"></span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <button @click="toggleMenuAvailability(dish)" class="text-[10px] px-2 py-0.5 rounded font-bold" :class="Number(dish.is_available) === 1 ? 'bg-emerald-950 text-emerald-300 border border-emerald-800' : 'bg-rose-950 text-rose-300 border border-rose-800'" x-text="Number(dish.is_available) === 1 ? 'उपलब्ध' : 'बंद'"></button>
+                    <button @click="deleteMenuItem(dish.id)" class="text-rose-400 hover:text-rose-300 text-sm">✕</button>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </template>
+
+          <div x-show="menuList.length === 0 && scannedBatch.length === 0" class="text-center py-5 text-xs text-slate-500">
+            मेन्यू खाली है। ऊपर 2-4 पन्नों की फोटो अपलोड करके ऑटो-स्कैन करें।
+          </div>
+        </div>
+
       </div>
     </template>
 
     <div class="text-center pt-2">
       <a :href="'https://govindaala.github.io/Expressway_stay/Index.html'" target="_blank" class="text-xs text-indigo-400 hover:underline inline-flex items-center gap-1 font-semibold">
-        👁️ यात्री स्क्रीन पर लाइव देखें ➔
+        👁️ लाइव यात्री स्क्रीन देखें ➔
       </a>
     </div>
   </div>
@@ -289,9 +322,11 @@
         detectingGps: false,
         submitting: false,
         ocrProcessing: false,
+        scanStatusText: '',
         menuLoading: false,
         menuList: [],
-        newMenuItem: { name: '', price: '' },
+        scannedBatch: [],
+        newMenuItem: { category: 'मेन कोर्स (सब्जी)', name: '', price: '' },
         reg: {
           category: 'both', food_type: 'veg', name: '', city: '', loginId: '', pin: '', phone: '', price: 150,
           ac_rooms_total: 5, ac_price: 2000, non_ac_rooms_total: 10, non_ac_price: 1200,
@@ -300,8 +335,7 @@
         hotel: {
           login_id: '', category: 'both', food_type: 'veg', name: '', city: '',
           ac_rooms_total: 0, ac_rooms_available: 0, ac_price: 0,
-          non_ac_rooms_total: 0, non_ac_rooms_available: 0, non_ac_price: 0,
-          available_rooms: 0, starting_price: 0
+          non_ac_rooms_total: 0, non_ac_rooms_available: 0, non_ac_price: 0
         },
 
         init() {
@@ -316,6 +350,11 @@
               localStorage.removeItem('stay_owner_hotel');
             }
           }
+        },
+
+        get uniqueCategories() {
+          const cats = this.menuList.map(m => m.category || 'मेन कोर्स (सब्जी)');
+          return [...new Set(cats)];
         },
 
         detectLocation() {
@@ -372,7 +411,7 @@
 
         async submitRegistration() {
           if (!this.reg.name || !this.reg.city || !this.reg.loginId || !this.reg.pin || !this.reg.phone) {
-            return alert('कृपया सभी जरूरी फ़ील्ड्स भरें!');
+            return alert('कृपया सभी जरूरी बॉक्स भरें!');
           }
           if (this.reg.pin.length !== 6) return alert('पिन ठीक 6 अंकों का रखें!');
           this.submitting = true;
@@ -456,7 +495,7 @@
           this.hotel.ac_rooms_available = next;
           this.updating = true;
           try {
-            await this.executeTurso(`UPDATE hotels SET ac_rooms_available = ${next}, available_rooms = ${next + this.hotel.non_ac_rooms_available} WHERE login_id = '${this.hotel.login_id}'`);
+            await this.executeTurso(`UPDATE hotels SET ac_rooms_available = ${next} WHERE login_id = '${this.hotel.login_id}'`);
             localStorage.setItem('stay_owner_hotel', JSON.stringify(this.hotel));
           } finally { this.updating = false; }
         },
@@ -467,7 +506,7 @@
           this.hotel.non_ac_rooms_available = next;
           this.updating = true;
           try {
-            await this.executeTurso(`UPDATE hotels SET non_ac_rooms_available = ${next}, available_rooms = ${this.hotel.ac_rooms_available + next} WHERE login_id = '${this.hotel.login_id}'`);
+            await this.executeTurso(`UPDATE hotels SET non_ac_rooms_available = ${next} WHERE login_id = '${this.hotel.login_id}'`);
             localStorage.setItem('stay_owner_hotel', JSON.stringify(this.hotel));
           } finally { this.updating = false; }
         },
@@ -479,16 +518,16 @@
         },
 
         async addManualMenuItem() {
-          if (!this.newMenuItem.name || !this.newMenuItem.price) return alert('नाम व कीमत दोनों लिखें!');
+          if (!this.newMenuItem.name || !this.newMenuItem.price) return alert('डिश और कीमत दोनों लिखें!');
           this.menuLoading = true;
           const cleanName = this.newMenuItem.name.trim().replace(/'/g, "''");
+          const cleanCat = (this.newMenuItem.category || 'मेन कोर्स (सब्जी)').trim().replace(/'/g, "''");
           const pr = Number(this.newMenuItem.price) || 0;
           try {
-            await this.executeTurso(`INSERT INTO menu_items (hotel_id, item_name, price) VALUES ('${this.hotel.login_id}', '${cleanName}', ${pr})`);
-            this.newMenuItem = { name: '', price: '' };
+            await this.executeTurso(`INSERT INTO menu_items (hotel_id, item_name, category, price) VALUES ('${this.hotel.login_id}', '${cleanName}', '${cleanCat}', ${pr})`);
+            this.newMenuItem.name = '';
+            this.newMenuItem.price = '';
             await this.fetchMenu();
-          } catch (e) {
-            alert('मेन्यू एरर: ' + e.message);
           } finally {
             this.menuLoading = false;
           }
@@ -505,31 +544,96 @@
           await this.fetchMenu();
         },
 
-        // AI विज़न OCR: फ़ोटो से डिश व कीमत स्कैन करना
-        async scanMenuCard(event) {
-          const file = event.target.files[0];
-          if (!file) return;
+        // --- मल्टी-पेज (2-4 पेज) व द्विभाषी (Hindi+English) AI मेन्यू स्कैनर ---
+        async scanMultiPageMenu(event) {
+          const files = Array.from(event.target.files);
+          if (!files || files.length === 0) return;
+
           this.ocrProcessing = true;
+          this.scannedBatch = [];
+          let currentCategory = 'मेन कोर्स (सब्जी)';
 
           try {
-            const result = await Tesseract.recognize(file, 'hin+eng');
-            const lines = result.data.text.split('\n');
+            const worker = await Tesseract.createWorker('hin+eng');
 
-            for (let line of lines) {
-              const match = line.match(/(.+?)\s*[:\-–₹]?\s*(\d{2,4})/);
-              if (match && match[1].trim().length > 2) {
-                const dish = match[1].trim().replace(/'/g, "''");
-                const cost = Number(match[2]);
-                await this.executeTurso(`INSERT INTO menu_items (hotel_id, item_name, price) VALUES ('${this.hotel.login_id}', '${dish}', ${cost})`);
+            for (let i = 0; i < files.length; i++) {
+              this.scanStatusText = `पेज ${i + 1} / ${files.length} स्कैन हो रहा है...`;
+              const ret = await worker.recognize(files[i]);
+              const lines = ret.data.text.split('\n');
+
+              for (let rawLine of lines) {
+                const line = rawLine.trim();
+                if (line.length < 2) continue;
+
+                // 1. हिंदी व इंग्लिश हेडिंग्स से ऑटो-कैटेगरी पहचान
+                const lower = line.toLowerCase();
+                if (lower.includes('roti') || lower.includes('bread') || lower.includes('नान') || lower.includes('रोटी') || lower.includes('तन्दूरी')) {
+                  currentCategory = 'तंदूरी ब्रेड्स / रोटियां';
+                  continue;
+                } else if (lower.includes('rice') || lower.includes('biryani') || lower.includes('pulao') || lower.includes('चावल') || lower.includes('पुलाव')) {
+                  currentCategory = 'दाल व चावल';
+                  continue;
+                } else if (lower.includes('thali') || lower.includes('थाली')) {
+                  currentCategory = 'स्पेशल थाली';
+                  continue;
+                } else if (lower.includes('breakfast') || lower.includes('snacks') || lower.includes('नाश्ता') || lower.includes('पकोड़ा') || lower.includes('पराठा')) {
+                  currentCategory = 'ब्रेकफास्ट / नाश्ता';
+                  continue;
+                } else if (lower.includes('tea') || lower.includes('coffee') || lower.includes('beverage') || lower.includes('चाय') || lower.includes('कॉफी') || lower.includes('दूध') || lower.includes('लस्सी')) {
+                  currentCategory = 'चाय व पेय';
+                  continue;
+                } else if (lower.includes('salad') || lower.includes('raita') || lower.includes('papad') || lower.includes('सलाद') || lower.includes('रायता') || lower.includes('पापड़')) {
+                  currentCategory = 'अन्य';
+                  continue;
+                } else if (lower.includes('main') || lower.includes('sabji') || lower.includes('paneer') || lower.includes('सब्जी') || lower.includes('पनीर')) {
+                  currentCategory = 'मेन कोर्स (सब्जी)';
+                  continue;
+                }
+
+                // 2. डिश नाम और रेट एक्सट्रेक्ट करना (उदा. Dal Tadka 140 या दाल फ्राई ₹120)
+                const match = line.match(/^(.+?)\s*[:\-–./₹]?\s*(\d{2,4})\s*$/);
+                if (match && match[1].trim().length >= 2) {
+                  const dishName = match[1].replace(/^[0-9.\-–*#\s]+/, '').trim();
+                  const dishPrice = Number(match[2]);
+                  if (dishName.length >= 2 && dishPrice > 5) {
+                    this.scannedBatch.push({
+                      category: currentCategory,
+                      name: dishName,
+                      price: dishPrice
+                    });
+                  }
+                }
               }
             }
-            alert('✅ AI द्वारा फ़ोटो से व्यंजन पहचानकर मेन्यू में जोड़ दिए गए!');
-            await this.fetchMenu();
+            await worker.terminate();
+
+            if (this.scannedBatch.length === 0) {
+              alert('फ़ोटो से कोई डिश नहीं मिली। कृपया साफ़ रोशनी में दोबारा फ़ोटो खींचें।');
+            }
           } catch (err) {
-            alert('फ़ोटो पढ़ने में समस्या आई। साफ़ फ़ोटो खींचें या नाम टाइप करें।');
+            alert('स्कैनिंग में त्रुटि: ' + err.message);
           } finally {
             this.ocrProcessing = false;
             event.target.value = '';
+          }
+        },
+
+        async saveScannedBatch() {
+          if (this.scannedBatch.length === 0) return;
+          this.menuLoading = true;
+          try {
+            for (let item of this.scannedBatch) {
+              const cleanName = item.name.trim().replace(/'/g, "''");
+              const cleanCat = item.category.trim().replace(/'/g, "''");
+              await this.executeTurso(`INSERT INTO menu_items (hotel_id, item_name, category, price) VALUES ('${this.hotel.login_id}', '${cleanName}', '${cleanCat}', ${item.price})`);
+            }
+            alert(`✅ सभी ${this.scannedBatch.length} व्यंजन सफलतापूर्वक मेन्यू में जुड़ गए!`);
+            this.scannedBatch = [];
+            await this.fetchMenu();
+          } catch (e) {
+            alert('सेव करने में एरर: ' + e.message);
+          } finally {
+            this.menuLoading = false;
           }
         },
 
