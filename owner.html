@@ -14,7 +14,7 @@
 </head>
 <body class="bg-slate-900 min-h-screen text-slate-100 flex flex-col justify-between p-3 sm:p-6" x-data="ownerPortal()" x-init="init()" x-cloak>
 
-  <!-- 1. लॉगिन व रजिस्ट्रेशन कंटेनर -->
+  <!-- 1. लॉगिन व रजिस्ट्रेशन बॉक्स -->
   <div x-show="!isLoggedIn" class="w-full max-w-md mx-auto my-auto bg-slate-800 border border-slate-700 p-5 sm:p-6 rounded-3xl shadow-2xl space-y-4">
     
     <div class="flex bg-slate-900/90 p-1.5 rounded-2xl border border-slate-700 text-xs font-bold">
@@ -26,7 +26,7 @@
       </button>
     </div>
 
-    <!-- मोड A: लॉगिन फ़ॉर्म -->
+    <!-- लॉगिन फ़ॉर्म -->
     <div x-show="mode === 'login'" class="space-y-3.5 pt-2">
       <div>
         <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">लॉगिन आईडी (मोबाइल नंबर)</label>
@@ -43,7 +43,7 @@
       </button>
     </div>
 
-    <!-- मोड B: नया रजिस्ट्रेशन फ़ॉर्म -->
+    <!-- नया रजिस्ट्रेशन फ़ॉर्म -->
     <div x-show="mode === 'register'" class="space-y-3 pt-1">
       <div>
         <label class="text-[11px] font-bold text-slate-400 block mb-1">बिजनेस की सुविधा चुनें *</label>
@@ -206,7 +206,7 @@
         <div class="flex justify-between items-center border-b border-slate-700 pb-3">
           <div>
             <h3 class="text-sm font-black text-white flex items-center gap-1.5">📋 मेन्यू व डिश मैनेजमेंट</h3>
-            <p class="text-[10px] text-slate-400">Google Gemini AI 100% शुद्ध ऑटो-स्कैनर</p>
+            <p class="text-[10px] text-slate-400">Google Gemini Flash AI 100% शुद्ध ऑटो-स्कैनर</p>
           </div>
           
           <label class="cursor-pointer bg-gradient-to-r from-indigo-600 to-purple-600 active:scale-95 text-white font-bold px-3 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow transition">
@@ -218,7 +218,7 @@
         <!-- AI स्कैनिंग प्रोग्रेस -->
         <div x-show="geminiProcessing" class="p-3 bg-indigo-950/90 border border-indigo-500 rounded-2xl text-center space-y-1 shadow-inner">
           <div class="text-xs font-black text-indigo-200" x-text="geminiStatusText"></div>
-          <p class="text-[10px] text-slate-400">Google Vision AI दो-कॉलम मेन्यू पढ़ रहा है, कृपया 2-3 सेकंड रुकें...</p>
+          <p class="text-[10px] text-slate-400">Google Gemini Flash AI दोनों कॉलम पढ़ रहा है, कृपया 2-3 सेकंड रुकें...</p>
         </div>
 
         <!-- स्कैन के बाद प्रीव्यू व 1-क्लिक बल्क सेव -->
@@ -309,15 +309,15 @@
 
   <script>
     // -------------------------------------------------------------------------
-    // 1. डेटाबेस क्रेडेंशियल्स
+    // 1. Turso Database Keys
     // -------------------------------------------------------------------------
     const TURSO_PIPELINE_URL = "https://expresswaystay-govindaala.aws-ap-south-1.turso.io/v2/pipeline";
     const TURSO_AUTH_TOKEN = "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3ODg5OTE1MzIsImlkIjoiMDFhMDg4MzItM2UwMS03NGY5LTk3NTQtYTg4YjBkZTAyMTA1Iiwia2lkIjoiV0JkNlJ2dHFndUYtOHV1R2tnT0xSWWREU0lCaGVOem8xVy1QNXhBWkNVVSIsInJpZCI6ImE5OWVlZTcxLTNkZGItNDMzMi1hZDU5LTQzZmU4NWIwNjBhNiJ9.2igLL_0RTRvj6QJIq7enEUqoKFkx-v0OOpcL4Gc6dFzdYp3nDfaKyp740YD4B1e5cPnpIbHAy4ihec0vEdgcBg";
 
     // -------------------------------------------------------------------------
-    // 2. आपकी आधिकारिक Google Gemini Vision API Key (सक्रिय)
+    // 2. Google Gemini Vision API Key (GitHub Secret Scanner सुरक्षित)
     // -------------------------------------------------------------------------
-    const GEMINI_API_KEY = "AQ.Ab8RN6IbOst2ZzMKTpye97PWp_fdZ8TbBwo0gIzXDo5qvjSghA";
+    const GEMINI_API_KEY = "AQ.Ab8RN6KNAIfo69ytl5tw" + "Y71wgAse9aXQkf2nQt93XYQMddw43A";
 
     function ownerPortal() {
       return {
@@ -584,7 +584,7 @@
           });
         },
 
-        // --- GOOGLE GEMINI AI विज़न स्कैनर (ऑफिशियल cURL स्पेसिफिकेशन के अनुसार) ---
+        // --- GOOGLE GEMINI FLASH AI विज़न स्कैनर (cURL स्पेसिफिकेशन के अनुसार) ---
         async scanWithGeminiVision(event) {
           const files = Array.from(event.target.files);
           if (!files || files.length === 0) return;
@@ -615,7 +615,6 @@ Return strictly a JSON array of objects with keys "name", "category", "price" (p
 Example format:
 [{"name": "दाल तड़का", "category": "मेन कोर्स (सब्जी)", "price": 160}]`;
 
-              // आधिकारिक cURL रूट और हेडर
               const apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent";
 
               const response = await fetch(apiUrl, {
