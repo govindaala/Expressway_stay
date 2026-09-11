@@ -14,7 +14,7 @@
 </head>
 <body class="bg-slate-100 text-slate-900 pb-24" x-data="travellerPortal()" x-init="initPortal()" x-cloak>
 
-  <!-- 1. टॉप हेडर -->
+  <!-- हेडर -->
   <header class="bg-slate-950 text-white px-4 py-3 flex items-center justify-between text-xs sticky top-0 z-40 border-b border-slate-800 shadow-md">
     <div class="flex items-center gap-2 font-black tracking-wide">
       <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -27,14 +27,14 @@
 
   <main class="max-w-md mx-auto p-4 space-y-3.5">
     
-    <!-- 2. ऑटो GPS स्टेटस बार -->
+    <!-- GPS बार -->
     <div class="p-3 rounded-2xl text-xs flex items-center justify-between shadow-sm border transition"
          :class="userLat ? 'bg-emerald-50 border-emerald-200 text-emerald-900' : 'bg-amber-50 border-amber-200 text-amber-900'">
       <div class="flex items-center gap-2">
         <span class="text-lg" x-text="userLat ? '📍' : '⏳'"></span>
         <div>
           <span class="font-extrabold block" x-text="userLat ? 'लाइव GPS लोकेशन सक्रिय है' : 'GPS लोकेशन खोजी जा रही है...'"></span>
-          <span class="text-[10px] text-slate-500" x-text="userLat ? 'सबसे नज़दीकी होटल और ढाबे सबसे ऊपर हैं' : 'नज़दीकी होटल देखने के लिए लोकेशन Allow करें'"></span>
+          <span class="text-[10px] text-slate-500" x-text="userLat ? 'सबसे नज़दीकी होटल और ढाबे सबसे ऊपर हैं' : 'लोकेशन Allow करें'"></span>
         </div>
       </div>
       <button x-show="!userLat" @click="getUserGps()" class="bg-amber-500 active:bg-amber-600 text-slate-950 font-black px-3 py-1.5 rounded-xl text-[10px] shadow">
@@ -42,7 +42,7 @@
       </button>
     </div>
 
-    <!-- 3. होटल बनाम रेस्टोरेंट टैब -->
+    <!-- कैटेगरी टैब्स -->
     <div class="grid grid-cols-2 gap-2 bg-slate-200/80 p-1 rounded-2xl">
       <button @click="activeCategory = 'hotel'" :class="activeCategory === 'hotel' ? 'bg-indigo-600 text-white shadow' : 'text-slate-700'" class="py-2.5 rounded-xl font-black text-xs transition flex items-center justify-center gap-1.5">
         <span>🏨</span> होटल (कमरे / Stay)
@@ -52,32 +52,43 @@
       </button>
     </div>
 
-    <!-- 4. लाइव सर्च बार -->
+    <!-- सर्च बार -->
     <div class="relative">
-      <input type="text" x-model="searchQuery" placeholder="होटल, ढाबा या शहर खोजें..." class="w-full bg-white border border-slate-300 rounded-2xl py-3 pl-10 pr-4 text-xs font-semibold placeholder:text-slate-400 outline-none focus:border-indigo-600 shadow-sm">
+      <input type="text" x-model="searchQuery" placeholder="होटल, ढाबा या व्यंजन खोजें..." class="w-full bg-white border border-slate-300 rounded-2xl py-3 pl-10 pr-4 text-xs font-semibold placeholder:text-slate-400 outline-none focus:border-indigo-600 shadow-sm">
       <span class="absolute left-3.5 top-3 text-slate-400 text-sm">🔍</span>
       <button x-show="searchQuery" @click="searchQuery = ''" class="absolute right-3 top-2.5 text-xs text-slate-400 bg-slate-100 rounded-full w-5 h-5 flex items-center justify-center">✕</button>
     </div>
 
-    <!-- लोडिंग स्पिनर -->
+    <!-- लोडिंग -->
     <div x-show="loading" class="text-center py-10">
       <div class="inline-block w-7 h-7 border-4 border-slate-300 border-t-indigo-600 rounded-full animate-spin"></div>
       <p class="text-xs text-slate-500 mt-2 font-medium">लाइव स्थिति जाँची जा रही है...</p>
     </div>
 
-    <!-- 5. होटल व ढाबा कार्ड्स (दूरी अनुसार क्रमबद्ध) -->
+    <!-- कार्ड्स लिस्टिंग -->
     <div x-show="!loading" class="space-y-3">
       <template x-for="item in sortedAndFilteredList" :key="item.login_id">
         <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 space-y-3">
           
-          <!-- शीर्षक व लोकेशन -->
+          <!-- शीर्षक, बैज व दूरी -->
           <div class="flex justify-between items-start gap-2">
             <div>
               <div class="flex items-center gap-1.5">
-                <span class="text-base" x-text="item.category === 'restaurant' ? '🍽️' : '🏨'"></span>
+                <span class="text-base" x-text="item.category === 'both' ? '🏨🍽️' : (item.category === 'restaurant' ? '🍽️' : '🏨')"></span>
                 <h3 class="font-black text-slate-900 text-sm" x-text="item.name"></h3>
               </div>
-              <p class="text-xs text-slate-500 font-medium mt-0.5 flex items-center gap-1">
+
+              <!-- भोजन प्रकार बैज (Veg / Non-Veg / Both) -->
+              <div class="inline-flex items-center gap-1 text-[10px] font-extrabold px-2 py-0.5 rounded-full mt-1"
+                   :class="{
+                     'bg-emerald-100 text-emerald-800 border border-emerald-300': (item.food_type === 'veg' || !item.food_type),
+                     'bg-rose-100 text-rose-800 border border-rose-300': item.food_type === 'non_veg',
+                     'bg-amber-100 text-amber-900 border border-amber-300': item.food_type === 'both'
+                   }">
+                <span x-text="item.food_type === 'non_veg' ? '🔴 नॉन-वेज' : (item.food_type === 'both' ? '🟡 वेज + नॉन-वेज' : '🟢 100% शाकाहारी')"></span>
+              </div>
+
+              <p class="text-xs text-slate-500 font-medium mt-1 flex items-center gap-1">
                 <span x-text="'📍 ' + item.city"></span>
                 <template x-if="item.distanceKm !== null">
                   <span class="bg-indigo-50 text-indigo-700 font-black px-2 py-0.5 rounded-md text-[10px] ml-1" x-text="item.distanceKm + ' km दूर'"></span>
@@ -85,16 +96,14 @@
               </p>
             </div>
 
-            <!-- रेस्टोरेंट हेतु दर -->
-            <template x-if="item.category === 'restaurant'">
-              <div class="text-right whitespace-nowrap">
-                <span class="text-[10px] text-slate-400 block font-bold">शुरुआती थाली</span>
-                <span class="text-sm font-black text-emerald-600" x-text="'₹' + (item.starting_price || 150)"></span>
-              </div>
-            </template>
+            <!-- शुरुआती दर -->
+            <div class="text-right whitespace-nowrap">
+              <span class="text-[10px] text-slate-400 block font-bold" x-text="item.category === 'restaurant' ? 'शुरुआती थाली' : 'कमरा किराया'"></span>
+              <span class="text-sm font-black text-emerald-600" x-text="'₹' + (item.starting_price || 150)"></span>
+            </div>
           </div>
 
-          <!-- रेटिंग व रिव्यू बार -->
+          <!-- रेटिंग व रिव्यू -->
           <div class="flex items-center justify-between bg-slate-50 border border-slate-100 p-2 rounded-xl text-xs">
             <div class="flex items-center gap-1">
               <span class="text-amber-500 font-black">★</span>
@@ -106,13 +115,12 @@
             </button>
           </div>
 
-          <!-- होटल: AC व नॉन-AC कमरों की स्थिति और किराया -->
-          <template x-if="item.category !== 'restaurant'">
+          <!-- होटल कमरे स्थिति (AC / Non-AC) -->
+          <template x-if="item.category === 'hotel' || item.category === 'both'">
             <div class="grid grid-cols-2 gap-2 pt-0.5">
-              <!-- ❄️ AC कमरा -->
               <div class="p-2.5 rounded-xl border" :class="Number(item.ac_rooms_available) > 0 ? 'bg-sky-50/70 border-sky-200' : 'bg-slate-50 border-slate-200'">
                 <div class="flex items-center justify-between">
-                  <span class="text-[11px] font-black text-sky-950 flex items-center gap-1">❄️ AC कमरा</span>
+                  <span class="text-[11px] font-black text-sky-950 flex items-center gap-1">❄️ AC</span>
                   <span class="text-xs font-black text-sky-700" x-text="'₹' + (item.ac_price || 0)"></span>
                 </div>
                 <div class="mt-1 flex items-center justify-between text-[10px] font-bold">
@@ -121,7 +129,6 @@
                 </div>
               </div>
 
-              <!-- 🌀 नॉन-AC कमरा -->
               <div class="p-2.5 rounded-xl border" :class="Number(item.non_ac_rooms_available) > 0 ? 'bg-amber-50/70 border-amber-200' : 'bg-slate-50 border-slate-200'">
                 <div class="flex items-center justify-between">
                   <span class="text-[11px] font-black text-amber-950 flex items-center gap-1">🌀 नॉन-AC</span>
@@ -135,18 +142,14 @@
             </div>
           </template>
 
-          <!-- रेस्टोरेंट: डाइनिंग व भोजन सेवा स्थिति -->
-          <template x-if="item.category === 'restaurant'">
-            <div class="p-2.5 rounded-xl border bg-orange-50 border-orange-200 flex items-center justify-between text-xs">
-              <div class="flex items-center gap-1.5">
-                <span class="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span>
-                <span class="font-bold text-orange-900">डाइनिंग व भोजन सेवा चालू</span>
-              </div>
-              <span class="text-[10px] font-bold text-orange-700 bg-orange-100 px-2 py-0.5 rounded">शुद्ध भोजन</span>
-            </div>
+          <!-- मेन्यू देखने का बटन (रेस्टोरेंट या दोनों होने पर) -->
+          <template x-if="item.category === 'restaurant' || item.category === 'both'">
+            <button @click="openMenuModal(item)" class="w-full bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm">
+              <span>📋</span> भोजन मेन्यू व लाइव रेट लिस्ट देखें ➔
+            </button>
           </template>
 
-          <!-- कॉल और सटीक पिनपॉइंट मैप नेविगेशन -->
+          <!-- कॉल और सटीक GPS मैप बटन -->
           <div class="grid grid-cols-2 gap-2 pt-1">
             <a :href="'tel:' + item.phone" class="bg-slate-900 active:bg-slate-800 text-white text-xs font-bold py-2.5 rounded-xl flex items-center justify-center gap-1.5 shadow">
               <span>📞</span> कॉल करें
@@ -158,17 +161,38 @@
 
         </div>
       </template>
-
-      <!-- कोई परिणाम न मिलने पर -->
-      <div x-show="sortedAndFilteredList.length === 0" class="text-center py-12 bg-white rounded-2xl border border-slate-200 p-6">
-        <span class="text-3xl block mb-2">🔍</span>
-        <h4 class="font-bold text-sm text-slate-800">कोई होटल या ढाबा नहीं मिला</h4>
-        <p class="text-xs text-slate-400 mt-1">कृपया सर्च कीवर्ड बदलें या अन्य कैटेगरी चुनें।</p>
-      </div>
     </div>
   </main>
 
-  <!-- 6. पब्लिक रिव्यू व रेटिंग पॉपअप मोडल -->
+  <!-- 3. मेन्यू पॉपअप मोडल -->
+  <div x-show="activeHotelForMenu" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 z-50">
+    <div class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 max-h-[85vh] overflow-y-auto space-y-4 shadow-2xl">
+      <div class="flex justify-between items-start border-b pb-2">
+        <div>
+          <span class="text-[10px] uppercase font-bold text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full">डिजिटल मेन्यू कार्ड</span>
+          <h3 class="text-base font-black text-slate-900 mt-1" x-text="activeHotelForMenu?.name"></h3>
+        </div>
+        <button @click="activeHotelForMenu = null" class="text-slate-400 hover:text-slate-700 text-lg font-bold bg-slate-100 rounded-full w-7 h-7 flex items-center justify-center">✕</button>
+      </div>
+
+      <div class="space-y-2">
+        <template x-for="dish in currentHotelMenu" :key="dish.id">
+          <div class="p-2.5 rounded-xl border border-slate-200 flex justify-between items-center text-xs">
+            <div>
+              <span class="font-bold text-slate-800" x-text="dish.item_name"></span>
+              <span class="text-[10px] block text-emerald-600 font-semibold" x-text="Number(dish.is_available) === 1 ? '✓ ताज़ा उपलब्ध' : '✕ समाप्त'"></span>
+            </div>
+            <span class="font-black text-emerald-700 font-mono text-sm" x-text="'₹' + dish.price"></span>
+          </div>
+        </template>
+        <div x-show="currentHotelMenu.length === 0" class="text-center py-6 text-xs text-slate-400">
+          इस ढाबे का मेन्यू अभी अपलोड हो रहा है। सीधे कॉल करके पूछें।
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. रिव्यू पॉपअप मोडल -->
   <div x-show="activeHotelForReview" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 z-50">
     <div class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 max-h-[90vh] overflow-y-auto space-y-4 shadow-2xl">
       <div class="flex justify-between items-start border-b pb-2">
@@ -176,43 +200,39 @@
           <span class="text-[10px] uppercase font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">पब्लिक रिव्यू</span>
           <h3 class="text-base font-black text-slate-900 mt-1" x-text="activeHotelForReview?.name"></h3>
         </div>
-        <button @click="activeHotelForReview = null" class="text-slate-400 hover:text-slate-700 text-lg font-bold bg-slate-100 rounded-full w-7 h-7 flex items-center justify-center">✕</button>
+        <button @click="activeHotelForReview = null" class="text-slate-400 text-lg font-bold bg-slate-100 rounded-full w-7 h-7 flex items-center justify-center">✕</button>
       </div>
 
-      <!-- रेटिंग फॉर्म -->
+      <!-- रेटिंग फ़ॉर्म -->
       <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2.5">
         <h4 class="text-xs font-black text-slate-800">★ रेटिंग दें</h4>
         <div class="flex items-center gap-2">
           <template x-for="star in [1, 2, 3, 4, 5]" :key="star">
-            <button @click="newReview.rating = star" type="button" class="text-2xl transition-transform active:scale-125" :class="star <= newReview.rating ? 'text-amber-400' : 'text-slate-300'">★</button>
+            <button @click="newReview.rating = star" type="button" class="text-2xl" :class="star <= newReview.rating ? 'text-amber-400' : 'text-slate-300'">★</button>
           </template>
         </div>
-        <input type="text" x-model="newReview.userName" placeholder="आपका पूरा नाम *" class="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs outline-none focus:border-indigo-600">
-        <input type="email" x-model="newReview.userEmail" placeholder="ईमेल आईडी (Google / Email) *" class="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs outline-none focus:border-indigo-600 font-mono">
-        <textarea x-model="newReview.comment" rows="2" placeholder="अपना अनुभव लिखें (कमरे, स्वच्छता, भोजन आदि)..." class="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs outline-none focus:border-indigo-600"></textarea>
-        <button @click="submitReview()" :disabled="submittingReview" class="w-full bg-indigo-600 active:bg-indigo-700 text-white font-bold py-2.5 rounded-xl text-xs shadow flex items-center justify-center gap-2">
+        <input type="text" x-model="newReview.userName" placeholder="आपका पूरा नाम *" class="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs outline-none">
+        <input type="email" x-model="newReview.userEmail" placeholder="ईमेल आईडी *" class="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs outline-none font-mono">
+        <textarea x-model="newReview.comment" rows="2" placeholder="अपना अनुभव लिखें..." class="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs outline-none"></textarea>
+        <button @click="submitReview()" :disabled="submittingReview" class="w-full bg-indigo-600 active:bg-indigo-700 text-white font-bold py-2.5 rounded-xl text-xs shadow flex items-center justify-center">
           <span x-show="!submittingReview">रिव्यू पोस्ट करें</span>
-          <span x-show="submittingReview" class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+          <span x-show="submittingReview">सबमिट हो रहा है...</span>
         </button>
       </div>
 
-      <!-- पूर्व रिव्यूज़ सूची -->
+      <!-- पिछले रिव्यूज़ -->
       <div class="space-y-2">
         <h4 class="text-xs font-black text-slate-800">💬 सभी रिव्यूज़ (<span x-text="currentHotelReviews.length"></span>)</h4>
-        <div class="space-y-2 max-h-52 overflow-y-auto pr-1">
+        <div class="space-y-2 max-h-48 overflow-y-auto">
           <template x-for="rev in currentHotelReviews" :key="rev.id">
             <div class="border border-slate-200 p-2.5 rounded-xl text-xs bg-white">
               <div class="flex justify-between font-bold">
                 <span x-text="rev.user_name"></span>
                 <span class="text-amber-500" x-text="'★'.repeat(rev.rating)"></span>
               </div>
-              <span class="text-[10px] font-mono text-slate-400 block" x-text="'✉️ ' + rev.user_email"></span>
               <p class="text-slate-700 mt-1" x-text="rev.comment || 'रेटिंग दर्ज की गई।'"></p>
             </div>
           </template>
-          <div x-show="currentHotelReviews.length === 0" class="text-center py-4 text-xs text-slate-400">
-            अभी कोई रिव्यू दर्ज नहीं है। पहले समीक्षक बनें!
-          </div>
         </div>
       </div>
     </div>
@@ -232,7 +252,9 @@
         userLat: null,
         userLon: null,
         activeHotelForReview: null,
+        activeHotelForMenu: null,
         currentHotelReviews: [],
+        currentHotelMenu: [],
         submittingReview: false,
         newReview: { rating: 5, userName: '', userEmail: '', comment: '' },
 
@@ -291,9 +313,7 @@
             let reviewRows = [];
             try {
               reviewRows = await this.executeTurso("SELECT * FROM reviews ORDER BY id DESC");
-            } catch (e) {
-              reviewRows = [];
-            }
+            } catch (e) {}
             this.reviews = reviewRows;
 
             this.hotels = hotelRows.map(h => {
@@ -302,7 +322,8 @@
               const avg = count > 0 ? (hReviews.reduce((sum, r) => sum + Number(r.rating), 0) / count) : null;
               return {
                 ...h,
-                category: h.category || 'hotel',
+                category: h.category || 'both',
+                food_type: h.food_type || 'veg',
                 ac_rooms_available: Number(h.ac_rooms_available) || 0,
                 ac_rooms_total: Number(h.ac_rooms_total) || 0,
                 ac_price: Number(h.ac_price) || 0,
@@ -336,7 +357,9 @@
           const q = this.searchQuery.trim().toLowerCase();
           return this.hotels
             .filter(item => {
-              const matchCat = (this.activeCategory === 'restaurant') ? (item.category === 'restaurant') : (item.category !== 'restaurant');
+              const matchCat = (this.activeCategory === 'restaurant')
+                ? (item.category === 'restaurant' || item.category === 'both')
+                : (item.category === 'hotel' || item.category === 'both');
               const matchQuery = !q || (item.name && item.name.toLowerCase().includes(q)) || (item.city && item.city.toLowerCase().includes(q));
               return matchCat && matchQuery;
             })
@@ -355,6 +378,15 @@
             });
         },
 
+        async openMenuModal(hotel) {
+          this.activeHotelForMenu = hotel;
+          try {
+            this.currentHotelMenu = await this.executeTurso(`SELECT * FROM menu_items WHERE hotel_id = '${hotel.login_id}' AND is_available = 1`);
+          } catch (e) {
+            this.currentHotelMenu = [];
+          }
+        },
+
         openReviewModal(hotel) {
           this.activeHotelForReview = hotel;
           this.currentHotelReviews = this.reviews.filter(r => r.hotel_id === hotel.login_id);
@@ -362,33 +394,18 @@
         },
 
         async submitReview() {
-          if (!this.newReview.userName || !this.newReview.userEmail) {
-            alert('कृपया अपना नाम और ईमेल आईडी दर्ज करें!');
-            return;
-          }
-          if (!this.newReview.userEmail.includes('@')) {
-            alert('कृपया मान्य ईमेल लिखें!');
-            return;
-          }
-
+          if (!this.newReview.userName || !this.newReview.userEmail) return alert('नाम व ईमेल दर्ज करें!');
           this.submittingReview = true;
           const cName = this.newReview.userName.trim().replace(/'/g, "''");
           const cEmail = this.newReview.userEmail.trim().replace(/'/g, "''");
           const cComm = (this.newReview.comment || '').trim().replace(/'/g, "''");
-          const hId = this.activeHotelForReview.login_id;
-          const star = this.newReview.rating;
-
           const sql = `INSERT INTO reviews (hotel_id, user_name, user_email, rating, comment)
-                       VALUES ('${hId}', '${cName}', '${cEmail}', ${star}, '${cComm}')`;
-
+                       VALUES ('${this.activeHotelForReview.login_id}', '${cName}', '${cEmail}', ${this.newReview.rating}, '${cComm}')`;
           try {
             await this.executeTurso(sql);
-            alert('✅ आपका रिव्यू प्रकाशित हो गया!');
+            alert('✅ रिव्यू दर्ज हो गया!');
             await this.fetchAllData();
-            this.currentHotelReviews = this.reviews.filter(r => r.hotel_id === hId);
-            this.newReview = { rating: 5, userName: '', userEmail: '', comment: '' };
-          } catch (e) {
-            alert('त्रुटि: ' + e.message);
+            this.currentHotelReviews = this.reviews.filter(r => r.hotel_id === this.activeHotelForReview.login_id);
           } finally {
             this.submittingReview = false;
           }
