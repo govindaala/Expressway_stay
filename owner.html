@@ -206,7 +206,7 @@
         <div class="flex justify-between items-center border-b border-slate-700 pb-3">
           <div>
             <h3 class="text-sm font-black text-white flex items-center gap-1.5">📋 मेन्यू व डिश मैनेजमेंट</h3>
-            <p class="text-[10px] text-slate-400">Google Gemini Flash AI 100% शुद्ध ऑटो-स्कैनर</p>
+            <p class="text-[10px] text-slate-400">Google Gemini AI ऑटो-स्कैनर (मल्टी-मॉडल बैकअप)</p>
           </div>
           
           <label class="cursor-pointer bg-gradient-to-r from-indigo-600 to-purple-600 active:scale-95 text-white font-bold px-3 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow transition">
@@ -218,7 +218,7 @@
         <!-- AI स्कैनिंग प्रोग्रेस -->
         <div x-show="geminiProcessing" class="p-3 bg-indigo-950/90 border border-indigo-500 rounded-2xl text-center space-y-1 shadow-inner">
           <div class="text-xs font-black text-indigo-200" x-text="geminiStatusText"></div>
-          <p class="text-[10px] text-slate-400">Google Gemini Flash AI दोनों कॉलम पढ़ रहा है, कृपया 2-3 सेकंड रुकें...</p>
+          <p class="text-[10px] text-slate-400">Google Gemini AI दोनों कॉलम पढ़ रहा है, कृपया 2-3 सेकंड रुकें...</p>
         </div>
 
         <!-- स्कैन के बाद प्रीव्यू व 1-क्लिक बल्क सेव -->
@@ -584,7 +584,7 @@
           });
         },
 
-        // --- GOOGLE GEMINI FLASH AI विज़न स्कैनर (cURL स्पेसिफिकेशन के अनुसार) ---
+        // --- GOOGLE GEMINI AI विज़न स्कैनर (मल्टी-मॉडल ऑटो-बैकअप) ---
         async scanWithGeminiVision(event) {
           const files = Array.from(event.target.files);
           if (!files || files.length === 0) return;
@@ -615,33 +615,49 @@ Return strictly a JSON array of objects with keys "name", "category", "price" (p
 Example format:
 [{"name": "दाल तड़का", "category": "मेन कोर्स (सब्जी)", "price": 160}]`;
 
-              const apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent";
+              // बैकअप मॉडल्स (अगर एक पर हाई लोड हो तो दूसरा तुरंत चलेगा)
+              const candidateModels = ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-flash-latest'];
+              let resultData = null;
+              let lastError = null;
 
-              const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'X-goog-api-key': GEMINI_API_KEY.trim()
-                },
-                body: JSON.stringify({
-                  contents: [{
-                    parts: [
-                      { inline_data: { mime_type: mimeType, data: base64Data } },
-                      { text: promptText }
-                    ]
-                  }],
-                  generationConfig: {
-                    response_mime_type: "application/json"
+              for (const modelName of candidateModels) {
+                try {
+                  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent`;
+                  const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      'X-goog-api-key': GEMINI_API_KEY.trim()
+                    },
+                    body: JSON.stringify({
+                      contents: [{
+                        parts: [
+                          { inline_data: { mime_type: mimeType, data: base64Data } },
+                          { text: promptText }
+                        ]
+                      }],
+                      generationConfig: {
+                        response_mime_type: "application/json"
+                      }
+                    })
+                  });
+
+                  if (response.ok) {
+                    resultData = await response.json();
+                    break;
+                  } else {
+                    const errJson = await response.json();
+                    lastError = new Error(errJson.error?.message || 'मॉडल व्यस्त है');
                   }
-                })
-              });
-
-              if (!response.ok) {
-                const errData = await response.json();
-                throw new Error(errData.error?.message || 'Google Vision API में नेटवर्क त्रुटि');
+                } catch (e) {
+                  lastError = e;
+                }
               }
 
-              const resultData = await response.json();
+              if (!resultData) {
+                throw lastError || new Error('Google AI सर्वर व्यस्त है, कृपया पुनः प्रयास करें।');
+              }
+
               const responseText = resultData.candidates?.[0]?.content?.parts?.[0]?.text;
 
               if (responseText) {
