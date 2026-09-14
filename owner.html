@@ -14,7 +14,7 @@
 </head>
 <body class="bg-slate-900 min-h-screen text-slate-100 flex flex-col justify-between p-3 sm:p-6" x-data="ownerPortal()" x-init="init()" x-cloak>
 
-  <!-- 1. लॉगिन व रजिस्ट्रेशन बॉक्स -->
+  <!-- 1. लॉगिन व रजिस्ट्रेशन कंटेनर -->
   <div x-show="!isLoggedIn" class="w-full max-w-md mx-auto my-auto bg-slate-800 border border-slate-700 p-5 sm:p-6 rounded-3xl shadow-2xl space-y-4">
     
     <div class="flex bg-slate-900/90 p-1.5 rounded-2xl border border-slate-700 text-xs font-bold">
@@ -26,7 +26,7 @@
       </button>
     </div>
 
-    <!-- लॉगिन फ़ॉर्म -->
+    <!-- मोड A: लॉगिन फ़ॉर्म -->
     <div x-show="mode === 'login'" class="space-y-3.5 pt-2">
       <div>
         <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">लॉगिन आईडी (मोबाइल नंबर)</label>
@@ -43,7 +43,7 @@
       </button>
     </div>
 
-    <!-- नया रजिस्ट्रेशन फ़ॉर्म -->
+    <!-- मोड B: नया रजिस्ट्रेशन फ़ॉर्म -->
     <div x-show="mode === 'register'" class="space-y-3 pt-1">
       <div>
         <label class="text-[11px] font-bold text-slate-400 block mb-1">बिजनेस की सुविधा चुनें *</label>
@@ -199,32 +199,45 @@
       </div>
     </template>
 
-    <!-- 🍽️ AI विज़न मेन्यू हब -->
+    <!-- 🍽️ मेन्यू व डिश हब (टेक्स्ट / WhatsApp स्मार्ट इंपोर्टर) -->
     <template x-if="hotel.category === 'restaurant' || hotel.category === 'both'">
       <div class="bg-slate-800 border border-slate-700 p-5 rounded-3xl shadow-xl space-y-4">
         
         <div class="flex justify-between items-center border-b border-slate-700 pb-3">
           <div>
             <h3 class="text-sm font-black text-white flex items-center gap-1.5">📋 मेन्यू व डिश मैनेजमेंट</h3>
-            <p class="text-[10px] text-slate-400">ऑटो-कंप्रेस्ड सुपर-फ़ास्ट AI विज़न</p>
+            <p class="text-[10px] text-slate-400">WhatsApp / लिस्ट से 1-क्लिक बल्क इंपोर्ट</p>
           </div>
           
-          <label class="cursor-pointer bg-gradient-to-r from-indigo-600 to-purple-600 active:scale-95 text-white font-bold px-3 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow transition">
-            <span>✨ AI कार्ड स्कैन (2-4 पेज)</span>
-            <input type="file" accept="image/*" multiple class="hidden" @change="scanWithGeminiVision($event)">
-          </label>
+          <button @click="showPasteBox = !showPasteBox" class="bg-gradient-to-r from-amber-500 to-orange-500 active:scale-95 text-slate-950 font-black px-3 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow transition">
+            <span x-text="showPasteBox ? '✕ बंद करें' : '📋 WhatsApp लिस्ट पेस्ट करें'"></span>
+          </button>
         </div>
 
-        <!-- AI स्कैनिंग प्रोग्रेस -->
-        <div x-show="geminiProcessing" class="p-3 bg-indigo-950/90 border border-indigo-500 rounded-2xl text-center space-y-1 shadow-inner">
-          <div class="text-xs font-black text-indigo-200" x-text="geminiStatusText"></div>
-          <p class="text-[10px] text-slate-400">फ़ोटो कंप्रेस होकर प्रोसेस हो रही है, 1-2 सेकंड रुकें...</p>
-        </div>
-
-        <!-- स्कैन के बाद प्रीव्यू व बल्क सेव -->
-        <div x-show="scannedBatch.length > 0" class="p-3 bg-slate-900 border border-amber-500/60 rounded-2xl space-y-3">
+        <!-- स्मार्ट पेस्ट बॉक्स -->
+        <div x-show="showPasteBox" class="p-3 bg-slate-900 border border-amber-500/80 rounded-2xl space-y-2.5 shadow-inner">
           <div class="flex justify-between items-center">
-            <span class="text-xs font-black text-amber-400">✨ AI द्वारा निकाले गए व्यंजन (<span x-text="scannedBatch.length"></span>)</span>
+            <label class="text-[11px] font-bold text-amber-400">यहाँ अपनी मेन्यू लिस्ट पेस्ट करें:</label>
+            <span class="text-[10px] text-slate-400">उदा. दाल तड़का 160</span>
+          </div>
+
+          <textarea x-model="pastedText" rows="6" placeholder="दाल फ्राई 140
+दाल तड़का 160
+शाही पनीर 220
+तंदूरी रोटी 12
+बटर नान 40
+जीरा राइस 110
+स्पेशल थाली 180" class="w-full bg-slate-800 border border-slate-700 text-white rounded-xl p-3 text-xs font-mono outline-none focus:border-amber-400 leading-relaxed"></textarea>
+
+          <button @click="parsePastedText()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black py-2.5 rounded-xl text-xs shadow flex items-center justify-center gap-1.5">
+            <span>⚡ डिशेस पहचानें और लोड करें</span>
+          </button>
+        </div>
+
+        <!-- लिस्ट पहचानने के बाद प्रीव्यू व 1-क्लिक बल्क सेव -->
+        <div x-show="scannedBatch.length > 0" class="p-3 bg-slate-900 border border-emerald-500/80 rounded-2xl space-y-3">
+          <div class="flex justify-between items-center">
+            <span class="text-xs font-black text-emerald-400">✓ पहचानी गई डिशेस (<span x-text="scannedBatch.length"></span>)</span>
             <button @click="saveScannedBatch()" :disabled="menuLoading" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black px-3 py-1.5 rounded-lg text-xs shadow flex items-center gap-1">
               <span x-show="!menuLoading">✓ सभी मेन्यू में सेव करें</span>
               <span x-show="menuLoading">सेव हो रहा है...</span>
@@ -252,7 +265,7 @@
           </div>
         </div>
 
-        <!-- 1-क्लिक मैनुअल डिश जोड़ना -->
+        <!-- 1-क्लिक मैन्युअल डिश जोड़ना -->
         <div class="grid grid-cols-12 gap-1.5 bg-slate-900 p-2 rounded-2xl border border-slate-700">
           <select x-model="newMenuItem.category" class="col-span-4 bg-slate-800 border border-slate-600 rounded-xl p-1.5 text-[11px] text-amber-300 font-bold outline-none">
             <option value="मेन कोर्स (सब्जी)">🍲 मेन कोर्स</option>
@@ -289,7 +302,7 @@
           </template>
 
           <div x-show="menuList.length === 0 && scannedBatch.length === 0" class="text-center py-5 text-xs text-slate-500">
-            मेन्यू खाली है। ऊपर AI स्कैन बटन दबाएँ।
+            मेन्यू खाली है। ऊपर WhatsApp लिस्ट पेस्ट बटन दबाएँ।
           </div>
         </div>
 
@@ -309,15 +322,10 @@
 
   <script>
     // -------------------------------------------------------------------------
-    // 1. Turso Database Keys
+    // Turso Database Credentials
     // -------------------------------------------------------------------------
     const TURSO_PIPELINE_URL = "https://expresswaystay-govindaala.aws-ap-south-1.turso.io/v2/pipeline";
     const TURSO_AUTH_TOKEN = "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3ODg5OTE1MzIsImlkIjoiMDFhMDg4MzItM2UwMS03NGY5LTk3NTQtYTg4YjBkZTAyMTA1Iiwia2lkIjoiV0JkNlJ2dHFndUYtOHV1R2tnT0xSWWREU0lCaGVOem8xVy1QNXhBWkNVVSIsInJpZCI6ImE5OWVlZTcxLTNkZGItNDMzMi1hZDU5LTQzZmU4NWIwNjBhNiJ9.2igLL_0RTRvj6QJIq7enEUqoKFkx-v0OOpcL4Gc6dFzdYp3nDfaKyp740YD4B1e5cPnpIbHAy4ihec0vEdgcBg";
-
-    // -------------------------------------------------------------------------
-    // 2. Google Gemini Vision API Key (GitHub Secret Scanner सुरक्षित)
-    // -------------------------------------------------------------------------
-    const GEMINI_API_KEY = "AQ.Ab8RN6KNAIfo69ytl5tw" + "Y71wgAse9aXQkf2nQt93XYQMddw43A";
 
     function ownerPortal() {
       return {
@@ -329,9 +337,9 @@
         updating: false,
         detectingGps: false,
         submitting: false,
-        geminiProcessing: false,
-        geminiStatusText: '',
         menuLoading: false,
+        showPasteBox: false,
+        pastedText: '',
         menuList: [],
         scannedBatch: [],
         newMenuItem: { category: 'मेन कोर्स (सब्जी)', name: '', price: '' },
@@ -572,163 +580,58 @@
           await this.fetchMenu();
         },
 
-        // --- इन-ब्राउज़र स्मार्ट फ़ोटो कंप्रेसर (12MB -> 120KB) ---
-        compressImage(file, maxWidth = 1200, quality = 0.75) {
-          return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = (e) => {
-              const img = new Image();
-              img.src = e.target.result;
-              img.onload = () => {
-                const canvas = document.createElement('canvas');
-                let width = img.width;
-                let height = img.height;
+        // --- स्मार्ट टेक्स्ट / WhatsApp पार्सर (0% एरर, पलक झपकते ही तैयार) ---
+        parsePastedText() {
+          if (!this.pastedText.trim()) return alert('कृपया पहले मेन्यू टेक्स्ट पेस्ट करें!');
+          
+          const lines = this.pastedText.split('\n');
+          const batch = [];
 
-                if (width > height) {
-                  if (width > maxWidth) {
-                    height = Math.round((height * maxWidth) / width);
-                    width = maxWidth;
-                  }
-                } else {
-                  if (height > maxWidth) {
-                    width = Math.round((width * maxWidth) / height);
-                    height = maxWidth;
-                  }
-                }
+          lines.forEach(rawLine => {
+            let line = rawLine.trim();
+            if (!line) return;
 
-                canvas.width = width;
-                canvas.height = height;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, width, height);
+            // लाइन से कीमत (नंबर) ढूँढना: "दाल फ्राई 140", "दाल तड़का - ₹160", "220/-" आदि
+            const priceMatch = line.match(/(\d+)\s*(?:\/-|₹|rs)?$/i) || line.match(/(?:₹|rs\.?|rate:?)\s*(\d+)/i) || line.match(/(\d+)/);
+            if (!priceMatch) return;
 
-                const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
-                const base64 = compressedDataUrl.split(',')[1];
-                resolve(base64);
-              };
-              img.onerror = (err) => reject(err);
-            };
-            reader.onerror = (err) => reject(err);
+            const price = parseInt(priceMatch[1], 10);
+            
+            // नाम से कीमत और अन्य फालतू चिन्ह हटाना
+            let name = line.replace(priceMatch[0], '')
+                           .replace(/[-–—:|=₹/.]/g, ' ')
+                           .replace(/\s+/g, ' ')
+                           .trim();
+
+            if (!name) return;
+
+            // अपने आप सही केटेगरी चुनना
+            let category = 'मेन कोर्स (सब्जी)';
+            if (/रोटी|नान|पराठा|chapati|roti|naan|paratha|kulcha|तंदूरी/i.test(name)) {
+              category = 'तंदूरी ब्रेड्स / रोटियां';
+            } else if (/दाल|चावल|राइस|dal|daal|rice|khichdi|biryani|पुलाव/i.test(name)) {
+              category = 'दाल व चावल';
+            } else if (/थाली|thali/i.test(name)) {
+              category = 'स्पेशल थाली';
+            } else if (/चाय|कॉफ़ी|कॉफी|coffee|tea|दूध|छाछ|लस्सी|lassi|chhash|water|कोल्डड्रिंक/i.test(name)) {
+              category = 'चाय व पेय';
+            } else if (/समोसा|पोहा|नाश्ता|कचोरी|kachori|poha|breakfast/i.test(name)) {
+              category = 'ब्रेकफास्ट / नाश्ता';
+            }
+
+            batch.push({ name, price, category });
           });
-        },
 
-        // --- AI विज़न स्कैनर (कम्प्रेशन + ऑटो-फ़ॉलबैक) ---
-        async scanWithGeminiVision(event) {
-          const files = Array.from(event.target.files);
-          if (!files || files.length === 0) return;
-
-          this.geminiProcessing = true;
-          this.scannedBatch = [];
-
-          try {
-            for (let i = 0; i < files.length; i++) {
-              this.geminiStatusText = `पेज ${i + 1}/${files.length} कंप्रेस होकर AI द्वारा पढ़ा जा रहा है...`;
-              
-              // भारी फ़ोटो को हल्का (कंप्रेस) करें
-              const base64Data = await this.compressImage(files[i]);
-              const mimeType = 'image/jpeg';
-
-              const promptText = `Analyze this restaurant menu card image very carefully.
-If there are multiple columns (two columns side-by-side), read both columns independently without mixing lines.
-Extract all food and beverage dishes, their appropriate category, and their exact price.
-Classify each dish into one of these exact categories:
-- 'मेन कोर्स (सब्जी)'
-- 'तंदूरी ब्रेड्स / रोटियां'
-- 'दाल व चावल'
-- 'स्पेशल थाली'
-- 'ब्रेकफास्ट / नाश्ता'
-- 'चाय व पेय'
-- 'अन्य'
-
-Clean dish names completely in Hindi: remove trailing or leading symbols like '.', '...', 'र', '$', '₹', '¥', '(', ')', serial numbers.
-Return strictly a JSON array of objects with keys "name", "category", "price" (price must be integer number).
-Example format:
-[{"name": "दाल तड़का", "category": "मेन कोर्स (सब्जी)", "price": 160}]`;
-
-              // सुपर-फ़ास्ट मॉडल्स की लिस्ट
-              const candidateModels = [
-  'gemini-flash-latest',
-  'gemini-2.0-flash'
-];
-
-              
-              let resultData = null;
-              let lastError = null;
-
-              for (const modelName of candidateModels) {
-                try {
-                  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent`;
-                  const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: {
-                      'Content-Type': 'application/json',
-                      'X-goog-api-key': GEMINI_API_KEY.trim()
-                    },
-                    body: JSON.stringify({
-                      contents: [{
-                        parts: [
-                          { inline_data: { mime_type: mimeType, data: base64Data } },
-                          { text: promptText }
-                        ]
-                      }],
-                      generationConfig: {
-                        response_mime_type: "application/json"
-                      }
-                    })
-                  });
-
-                  if (response.ok) {
-                    resultData = await response.json();
-                    break; // सफल होते ही लूप से बाहर निकलें
-                  } else {
-                    const errJson = await response.json().catch(() => ({}));
-                    lastError = new Error(errJson.error?.message || 'मॉडल व्यस्त है');
-                  }
-                } catch (e) {
-                  lastError = e;
-                }
-              }
-
-              if (!resultData) {
-                throw lastError || new Error('सभी AI सर्वर इस समय व्यस्त हैं, कृपया 1 मिनट बाद पुनः प्रयास करें।');
-              }
-
-              const responseText = resultData.candidates?.[0]?.content?.parts?.[0]?.text;
-
-              if (responseText) {
-                try {
-                  const dishes = JSON.parse(responseText);
-                  if (Array.isArray(dishes)) {
-                    dishes.forEach(d => {
-                      if (d.name && d.price) {
-                        this.scannedBatch.push({
-                          category: d.category || 'मेन कोर्स (सब्जी)',
-                          name: String(d.name).trim(),
-                          price: Number(d.price) || 0
-                        });
-                      }
-                    });
-                  }
-                } catch (pe) {
-                  console.error('JSON parse error:', pe);
-                }
-              }
-            }
-
-            if (this.scannedBatch.length === 0) {
-              alert('फ़ोटो से कोई डिश नहीं मिली। कृपया साफ़ रोशनी में दोबारा फ़ोटो खींचें।');
-            } else {
-              alert(`🎉 बधाई! AI ने कुल ${this.scannedBatch.length} व्यंजन 100% शुद्धता से पहचान लिए हैं। नीचे 'सभी मेन्यू में सेव करें' दबाएँ।`);
-            }
-          } catch (err) {
-            alert('AI स्कैनिंग एरर: ' + err.message);
-          } finally {
-            this.geminiProcessing = false;
-            event.target.value = '';
+          if (batch.length === 0) {
+            return alert('कोई डिश और कीमत नहीं मिली! कृपया सही फ़ॉर्मेट में पेस्ट करें (उदा. दाल तड़का 160)');
           }
+
+          this.scannedBatch = batch;
+          this.pastedText = '';
+          this.showPasteBox = false;
         },
 
-        // बल्क सेव
+        // 1-क्लिक बल्क सेव सीधे डेटाबेस में
         async saveScannedBatch() {
           if (this.scannedBatch.length === 0) return;
           this.menuLoading = true;
