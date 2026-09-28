@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>डिजिटल रेस्टोरेंट मेन्यू व टेबल ऑर्डर</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 0; }
+    body { background: #f8fafc; color: #0f172a; padding-bottom: 96px; -webkit-tap-highlight-color: transparent; }
+    header { background: #0f172a; color: white; padding: 16px 20px; position: sticky; top: 0; z-index: 20; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+    .header-content { display: flex; justify-content: space-between; align-items: center; }
+    .hotel-name { font-size: 18px; font-weight: bold; }
+    .table-pill { background: #f59e0b; color: #000; font-weight: bold; padding: 4px 12px; border-radius: 20px; font-size: 13px; }
+    
+    .cat-bar { display: flex; overflow-x: auto; gap: 8px; padding: 12px 16px; background: white; border-bottom: 1px solid #e2e8f0; position: sticky; top: 62px; z-index: 10; }
+    .cat-bar::-webkit-scrollbar { display: none; }
+    .cat-chip { padding: 6px 14px; background: #f1f5f9; border-radius: 20px; font-size: 13px; font-weight: 600; white-space: nowrap; cursor: pointer; border: 1px solid #e2e8f0; }
+    .cat-chip.active { background: #0f172a; color: white; border-color: #0f172a; }
+
+    .menu-list { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+    .item-card { background: white; padding: 14px 16px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+    .item-name { font-weight: bold; font-size: 15px; color: #0f172a; }
+    .item-category { font-size: 11px; color: #64748b; margin-top: 2px; }
+    .item-price { color: #16a34a; font-weight: 700; font-size: 15px; margin-top: 4px; }
+    
+    .btn-add { background: #0f172a; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: bold; font-size: 13px; cursor: pointer; }
+    .qty-box { display: flex; align-items: center; gap: 8px; background: #f1f5f9; border-radius: 8px; padding: 3px; }
+    .qty-btn { width: 30px; height: 30px; border: none; border-radius: 6px; background: white; font-weight: bold; font-size: 16px; cursor: pointer; color: #0f172a; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+    .qty-num { font-weight: bold; min-width: 20px; text-align: center; }
+
+    .cart-bar { position: fixed; bottom: 0; left: 0; right: 0; background: white; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #e2e8f0; box-shadow: 0 -4px 12px rgba(0,0,0,0.08); z-index: 30; }
+    .btn-submit { background: #16a34a; color: white; border: none; padding: 12px 22px; border-radius: 10px; font-weight: bold; font-size: 15px; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+    .btn-submit:disabled { background: #cbd5e1; cursor: not-allowed; }
+
+    .alert-banner { display: none; padding: 14px; background: #dcfce7; color: #15803d; border-radius: 10px; font-weight: bold; text-align: center; margin: 16px; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-content">
+      <div>
+        <div class="hotel-name" id="hotelTitle">होटल डिजिटल मेन्यू</div>
+        <div style="font-size: 11px; color: #94a3b8; margin-top: 2px;">ऑर्डर सीधा काउंटर व किचन में जाएगा</div>
+      </div>
+      <div class="table-pill" id="tableBadge">टेबल T-...</div>
+    </div>
+  </header>
+
+  <div class="alert-banner" id="orderSuccessAlert">
+    ✅ आपका ऑर्डर काउंटर पर भेज दिया गया है! कृपया 2 मिनट प्रतीक्षा करें।
+  </div>
+
+  <div class="cat-bar" id="catBar">
+    <div class="cat-chip active" onclick="setCategory('ALL')">सभी डिशेज़</div>
+  </div>
+
+  <div class="menu-list" id="menuContainer">
+    <div style="text-align: center; color: #64748b; margin-top: 40px;">मेन्यू लोड हो रहा है...</div>
+  </div>
+
+  <div class="cart-bar">
+    <div>
+      <div style="font-size: 12px; color: #64748b;">कुल डिशेज़: <span id="cartCount">0</span></div>
+      <div style="font-size: 19px; font-weight: bold; color: #16a34a;" id="cartTotal">₹0</div>
+    </div>
+    <button class="btn-submit" id="submitBtn" onclick="submitTableOrder()" disabled>
+      ऑर्डर भेजें ➔
+    </button>
+  </div>
+
+  <script>
+    const SUPABASE_URL = "https://hbewnquphiwvxaxittrl.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_HA1-PBV55kEZet2GG_IBdg_HjUzfOxf";
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const storeCode = (urlParams.get('store') || '111').toUpperCase();
+    const tableNo = parseInt(urlParams.get('table')) || 1;
+
+    document.getElementById('tableBadge').innerText = `Table T-${tableNo}`;
+
+    let allItems = [];
+    let activeCat = 'ALL';
+    let cart = {};
+
+    async function initMenu() {
+      try {
+        const { data: resto } = await supabaseClient
+          .from('restaurants')
+          .select('name')
+          .eq('store_code', storeCode)
+          .maybeSingle();
+        if (resto && resto.name) {
+          document.getElementById('hotelTitle').innerText = resto.name;
+        }
+      } catch (_) {}
+
+      try {
+        const { data: menu } = await supabaseClient
+          .from('menu_items')
+          .select('*')
+          .eq('store_code', storeCode)
+          .eq('is_available', true);
+
+        if (menu && menu.length > 0) {
+          allItems = menu;
+        } else {
+          allItems = [
+            { id: '1', name: 'पनीर बटर मसाला', price: 220, category: 'सब्जी' },
+            { id: '2', name: 'दाल तड़का फ्राई', price: 140, category: 'दाल' },
+            { id: '3', name: 'तंदूरी बटर रोटी', price: 15, category: 'रोटी' },
+            { id: '4', name: 'जीरा राइस', price: 110, category: 'चावल' },
+            { id: '5', name: 'मसाला छाछ', price: 25, category: 'पेय' }
+          ];
+        }
+
+        buildCategories();
+        renderItems();
+      } catch (e) {
+        document.getElementById('menuContainer').innerHTML = 
+          `<div style="text-align:center; color:red;">मेन्यू लोड त्रुटि: ${e.message}</div>`;
+      }
+    }
+
+    function buildCategories() {
+      const cats = ['ALL', ...new Set(allItems.map(it => it.category || 'अन्य'))];
+      const bar = document.getElementById('catBar');
+      bar.innerHTML = '';
+      cats.forEach(c => {
+        const chip = document.createElement('div');
+        chip.className = `cat-chip ${c === activeCat ? 'active' : ''}`;
+        chip.innerText = c === 'ALL' ? 'सभी डिशेज़' : c;
+        chip.onclick = () => {
+          activeCat = c;
+          document.querySelectorAll('.cat-chip').forEach(el => el.classList.remove('active'));
+          chip.classList.add('active');
+          renderItems();
+        };
+        bar.appendChild(chip);
+      });
+    }
+
+    function renderItems() {
+      const filtered = activeCat === 'ALL' 
+        ? allItems 
+        : allItems.filter(it => (it.category || 'अन्य') === activeCat);
+
+      const container = document.getElementById('menuContainer');
+      container.innerHTML = '';
+
+      filtered.forEach(it => {
+        const qty = cart[it.id] ? cart[it.id].qty : 0;
+        const card = document.createElement('div');
+        card.className = 'item-card';
+        card.innerHTML = `
+          <div>
+            <div class="item-name">${it.name}</div>
+            <div class="item-category">${it.category || 'General'}</div>
+            <div class="item-price">₹${it.price}</div>
+          </div>
+          <div>
+            ${qty === 0 
+              ? `<button class="btn-add" onclick="updateQty('${it.id}', '${it.name}',${it.price}, 1)">+ जोड़ें</button>`
+              : `<div class="qty-box">
+                   <button class="qty-btn" onclick="updateQty('${it.id}', '${it.name}',${it.price}, -1)">−</button>
+                   <span class="qty-num">${qty}</span>
+                   <button class="qty-btn" onclick="updateQty('${it.id}', '${it.name}',${it.price}, 1)">+</button>
+                 </div>`
+            }
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function updateQty(id, name, price, delta) {
+      if (!cart[id]) {
+        cart[id] = { id, name, price, qty: 0 };
+      }
+      cart[id].qty += delta;
+      if (cart[id].qty <= 0) {
+        delete cart[id];
+      }
+      refreshCartUI();
+    }
+
+    function refreshCartUI() {
+      renderItems();
+      let totalQty = 0;
+      let totalSum = 0;
+
+      Object.values(cart).forEach(it => {
+        totalQty += it.qty;
+        totalSum += (it.price * it.qty);
+      });
+
+      document.getElementById('cartCount').innerText = totalQty;
+      document.getElementById('cartTotal').innerText = `₹${totalSum}`;
+      document.getElementById('submitBtn').disabled = (totalQty === 0);
+    }
+
+    async function submitTableOrder() {
+      const itemsList = Object.values(cart);
+      if (itemsList.length === 0) return;
+
+      const btn = document.getElementById('submitBtn');
+      btn.innerText = "भेजा जा रहा है...";
+      btn.disabled = true;
+
+      const totalAmount = itemsList.reduce((sum, it) => sum + (it.price * it.qty), 0);
+
+      try {
+        const { error } = await supabaseClient.from('qr_orders').insert({
+          store_code: storeCode,
+          table_no: tableNo,
+          items: itemsList,
+          total_amount: totalAmount,
+          status: 'PENDING_APPROVAL'
+        });
+
+        if (error) throw error;
+
+        document.getElementById('orderSuccessAlert').style.display = 'block';
+        cart = {};
+        refreshCartUI();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        setTimeout(() => {
+          document.getElementById('orderSuccessAlert').style.display = 'none';
+        }, 8000);
+      } catch (err) {
+        alert("ऑर्डर भेजने में समस्या आई: " + err.message);
+      } finally {
+        btn.innerText = "ऑर्डर भेजें ➔";
+      }
+    }
+
+    initMenu();
+  </script>
+</body>
+</html>
